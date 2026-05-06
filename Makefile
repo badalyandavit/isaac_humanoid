@@ -1,5 +1,9 @@
 PYTHON ?= python3
 export PYTHONPATH := src$(if $(PYTHONPATH),:$(PYTHONPATH))
+VIDEO_CONFIG ?= configs/baseline_ppo.yaml
+VIDEO_CHECKPOINT ?= outputs/baseline_humanoid_v5/checkpoints/final.pt
+VIDEO_OUT ?= outputs/videos/humanoid_policy.mp4
+VIDEO_MAX_STEPS ?= 1000
 
 .PHONY: install smoke baseline average heavytail scaling collect-data analyze video
 
@@ -29,4 +33,4 @@ analyze:
 	$(PYTHON) scripts/analyze_results.py --outputs outputs --out outputs/analysis
 
 video:
-	$(PYTHON) scripts/record_video.py --config configs/baseline_ppo.yaml --checkpoint outputs/baseline_humanoid_v5/checkpoints/final.pt
+	$(PYTHON) scripts/record_video.py --config $(VIDEO_CONFIG) --checkpoint $(VIDEO_CHECKPOINT) --out $(VIDEO_OUT) --max-steps $(VIDEO_MAX_STEPS)
