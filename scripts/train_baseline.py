@@ -18,8 +18,8 @@ def main() -> None:
     trainer = PPOTrainer(cfg, run_name="baseline")
     trainer.dump_config()
     try:
-        trainer.train(cfg.total_timesteps)
-        metrics = trainer.evaluate(cfg.eval_episodes)
+        trainer.train(cfg.total_timesteps, desc="baseline updates")
+        metrics = trainer.evaluate(cfg.eval_episodes, show_progress=True, desc="baseline eval")
         print(metrics)
         trainer.save(trainer.output_dir / "checkpoints" / "final.pt")
     finally:

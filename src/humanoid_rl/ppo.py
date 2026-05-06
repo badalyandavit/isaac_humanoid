@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
+from tqdm.auto import tqdm
 
 from humanoid_rl.config import PPOConfig
 from humanoid_rl.envs import RunningMeanStd, extract_episode_stats, make_single_env, make_vector_env
@@ -46,7 +47,7 @@ class PPOTrainer:
         if cfg.torch_compile and hasattr(torch, "compile"):
             self.model = torch.compile(self.model)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, eps=1e-5)
-        self.scaler = torch.cuda.amp.GradScaler(enabled=cfg.amp and self.device.type == "cuda")
+        self.scaler = torch.amp.GradScaler("cuda", enabled=cfg.amp and self.device.type == "cuda")
         self.writer = SummaryWriter(str(self.output_dir / "tb" / self.run_name))
         self.csv_logger = CSVLogger(self.output_dir / f"{self.run_name}_train.csv")
         self.global_step = 0
@@ -63,7 +64,7 @@ class PPOTrainer:
 
     def reset_optimizer(self) -> None:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.learning_rate, eps=1e-5)
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.cfg.amp and self.device.type == "cuda")
+        self.scaler = torch.amp.GradScaler("cuda", enabled=self.cfg.amp and self.device.type == "cuda")
 
     def _normalize_obs_np(self, obs: np.ndarray, update: bool) -> np.ndarray:
         obs = obs.reshape(obs.shape[0], self.obs_dim).astype(np.float32)
@@ -117,7 +118,7 @@ class PPOTrainer:
             for start in range(0, batch_size, minibatch_size):
                 end = start + minibatch_size
                 mb_inds = b_inds[start:end]
-                with torch.cuda.amp.autocast(enabled=cfg.amp and self.device.type == "cuda"):
+                with torch.amp.autocast(self.device.type, enabled=cfg.amp and self.device.type == "cuda"):
                     _, newlogprob, entropy, newvalue, _ = self.model.get_action_and_value(
                         batch.obs[mb_inds], batch.actions[mb_inds]
                     )
@@ -177,12 +178,27 @@ class PPOTrainer:
             return float("nan")
         return float(1 - np.var(y_true - y_pred) / var_y)
 
-    def train(self, total_timesteps: int | None = None) -> None:
+    def train(
+        self,
+        total_timesteps: int | None = None,
+        show_progress: bool = True,
+        desc: str | None = None,
+    ) -> None:
         total_timesteps = int(total_timesteps or self.cfg.total_timesteps)
         batch_size = self.cfg.num_envs * self.cfg.num_steps
         num_updates = max(1, total_timesteps // batch_size)
-        for _ in range(num_updates):
-            self.train_one_update(total_updates=num_updates)
+        update_iter = range(num_updates)
+        progress = None
+        if show_progress:
+            progress = tqdm(update_iter, desc=desc or f"{self.run_name} updates", unit="update")
+            update_iter = progress
+        for _ in update_iter:
+            row = self.train_one_update(total_updates=num_updates)
+            if progress is not None:
+                postfix = {"step": self.global_step}
+                if "episodic_return_mean" in row:
+                    postfix["return"] = f"{row['episodic_return_mean']:.1f}"
+                progress.set_postfix(postfix)
 
     def train_one_update(self, total_updates: int | None = None) -> dict[str, float]:
         self.update_idx += 1
@@ -216,13 +232,28 @@ class PPOTrainer:
         return row
 
     @torch.no_grad()
-    def evaluate(self, episodes: int | None = None, deterministic: bool = True) -> dict[str, Any]:
+    def evaluate(
+        self,
+        episodes: int | None = None,
+        deterministic: bool = True,
+        show_progress: bool = False,
+        desc: str | None = None,
+        leave: bool = True,
+    ) -> dict[str, Any]:
         episodes = int(episodes or self.cfg.eval_episodes)
         env = gym.make(self.cfg.env_id)
         returns: list[float] = []
         lengths: list[int] = []
         reward_ctrl_values: list[float] = []
-        for ep_idx in range(episodes):
+        episode_iter = range(episodes)
+        if show_progress:
+            episode_iter = tqdm(
+                episode_iter,
+                desc=desc or f"{self.run_name} eval",
+                unit="episode",
+                leave=leave,
+            )
+        for ep_idx in episode_iter:
             obs, _ = env.reset(seed=self.cfg.seed + 100_000 + ep_idx)
             done = False
             ep_return = 0.0

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from tqdm.auto import tqdm
+
 from humanoid_rl.config import (
     HeavyTailConfig,
     PPOConfig,
@@ -186,7 +188,12 @@ def evaluate_checkpoint(
     trainer = PPOTrainer(spec.eval_cfg, run_name=f"collect_eval_{spec.method_key}_{checkpoint.stem}")
     try:
         trainer.load(checkpoint, load_optimizer=False)
-        metrics = trainer.evaluate(spec.eval_episodes, deterministic=deterministic)
+        metrics = trainer.evaluate(
+            spec.eval_episodes,
+            deterministic=deterministic,
+            show_progress=True,
+            desc=f"{spec.method_key} {checkpoint_label(checkpoint)} eval",
+        )
     finally:
         trainer.close()
 
@@ -242,13 +249,13 @@ def main() -> None:
     episode_rows: list[dict[str, Any]] = []
     summary_rows: list[dict[str, Any]] = []
     missing: list[str] = []
-    for config in args.configs:
+    for config in tqdm(args.configs, desc="configs", unit="config"):
         spec = make_spec(Path(config), args.episodes, args.out.parent)
         checkpoints = discover_checkpoints(spec, args.include_intermediate)
         if not checkpoints:
             missing.append(f"{spec.config_path}: no checkpoints under {spec.output_dir / 'checkpoints'}")
             continue
-        for checkpoint in checkpoints:
+        for checkpoint in tqdm(checkpoints, desc=f"{spec.method_key} checkpoints", unit="ckpt"):
             rows, summary = evaluate_checkpoint(
                 spec,
                 checkpoint,
@@ -256,7 +263,7 @@ def main() -> None:
             )
             episode_rows.extend(rows)
             summary_rows.append(summary)
-            print(f"Evaluated {checkpoint} over {spec.eval_episodes} episodes.")
+            tqdm.write(f"Evaluated {checkpoint} over {spec.eval_episodes} episodes.")
 
     if not summary_rows:
         for item in missing:

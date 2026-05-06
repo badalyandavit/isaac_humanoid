@@ -5,6 +5,7 @@ import copy
 from dataclasses import asdict
 
 import numpy as np
+from tqdm.auto import tqdm
 
 from humanoid_rl.config import AverageConfig, load_average_config
 from humanoid_rl.population.averaging import average_state_dicts
@@ -32,11 +33,18 @@ def make_workers(cfg: AverageConfig) -> list[PPOTrainer]:
     return workers
 
 
-def train_worker_round(worker: PPOTrainer, round_timesteps: int, total_updates: int) -> None:
+def train_worker_round(
+    worker: PPOTrainer,
+    round_timesteps: int,
+    total_updates: int,
+    progress: tqdm | None = None,
+) -> None:
     batch_size = worker.cfg.num_envs * worker.cfg.num_steps
     updates = max(1, round_timesteps // batch_size)
     for _ in range(updates):
         worker.train_one_update(total_updates=total_updates)
+        if progress is not None:
+            progress.update(1)
 
 
 def main() -> None:
@@ -50,34 +58,49 @@ def main() -> None:
     updates_per_round = max(1, cfg.round_timesteps // batch_size)
     total_updates = cfg.total_rounds * updates_per_round
     try:
-        for round_idx in range(1, cfg.total_rounds + 1):
-            for worker in workers:
-                train_worker_round(worker, cfg.round_timesteps, total_updates)
-            evals = [worker.evaluate(cfg.eval_episodes) for worker in workers]
-            if round_idx % cfg.average_every_rounds == 0:
-                avg_state = average_state_dicts([worker.policy_state_dict_cpu() for worker in workers])
+        total_worker_updates = cfg.total_rounds * len(workers) * updates_per_round
+        with tqdm(total=total_worker_updates, desc="average PPO updates", unit="update") as update_bar:
+            rounds = tqdm(range(1, cfg.total_rounds + 1), desc="average rounds", unit="round")
+            for round_idx in rounds:
                 for worker in workers:
-                    worker.load_policy_state_dict(avg_state)
-                    if cfg.reset_optimizer_after_average:
-                        worker.reset_optimizer()
-            returns = [payload["mean_return"] for payload in evals]
-            medians = [payload["median_return"] for payload in evals]
-            row = {
-                "round": round_idx,
-                "mean_worker_return": float(np.mean(returns)),
-                "median_worker_return": float(np.median(medians)),
-                "best_worker": int(np.argmax(returns)),
-                "best_mean_return": float(np.max(returns)),
-            }
-            for i, payload in enumerate(evals):
-                row[f"worker_{i}_mean_return"] = payload["mean_return"]
-                row[f"worker_{i}_median_return"] = payload["median_return"]
-                row[f"worker_{i}_fall_rate"] = payload["fall_rate"]
-            logger.write(row)
-            print(row)
-            if round_idx % max(1, cfg.total_rounds // 10) == 0:
-                best_idx = int(np.argmax(returns))
-                workers[best_idx].save(output_dir / "checkpoints" / f"best_round_{round_idx}.pt")
+                    train_worker_round(worker, cfg.round_timesteps, total_updates, update_bar)
+                evals = [
+                    worker.evaluate(
+                        cfg.eval_episodes,
+                        show_progress=True,
+                        desc=f"round {round_idx} worker {worker_idx} eval",
+                        leave=False,
+                    )
+                    for worker_idx, worker in enumerate(workers)
+                ]
+                if round_idx % cfg.average_every_rounds == 0:
+                    avg_state = average_state_dicts([worker.policy_state_dict_cpu() for worker in workers])
+                    for worker in workers:
+                        worker.load_policy_state_dict(avg_state)
+                        if cfg.reset_optimizer_after_average:
+                            worker.reset_optimizer()
+                returns = [payload["mean_return"] for payload in evals]
+                medians = [payload["median_return"] for payload in evals]
+                row = {
+                    "round": round_idx,
+                    "mean_worker_return": float(np.mean(returns)),
+                    "median_worker_return": float(np.median(medians)),
+                    "best_worker": int(np.argmax(returns)),
+                    "best_mean_return": float(np.max(returns)),
+                }
+                for i, payload in enumerate(evals):
+                    row[f"worker_{i}_mean_return"] = payload["mean_return"]
+                    row[f"worker_{i}_median_return"] = payload["median_return"]
+                    row[f"worker_{i}_fall_rate"] = payload["fall_rate"]
+                logger.write(row)
+                rounds.set_postfix(
+                    best_return=f"{row['best_mean_return']:.1f}",
+                    mean_return=f"{row['mean_worker_return']:.1f}",
+                )
+                tqdm.write(str(row))
+                if round_idx % max(1, cfg.total_rounds // 10) == 0:
+                    best_idx = int(np.argmax(returns))
+                    workers[best_idx].save(output_dir / "checkpoints" / f"best_round_{round_idx}.pt")
         final_state = average_state_dicts([worker.policy_state_dict_cpu() for worker in workers])
         workers[0].load_policy_state_dict(final_state)
         workers[0].save(output_dir / "checkpoints" / "final_average.pt")

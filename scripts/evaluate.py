@@ -21,7 +21,12 @@ def main() -> None:
     trainer = PPOTrainer(cfg, run_name="eval")
     try:
         trainer.load(args.checkpoint, load_optimizer=False)
-        metrics = trainer.evaluate(args.episodes, deterministic=not args.stochastic)
+        metrics = trainer.evaluate(
+            args.episodes,
+            deterministic=not args.stochastic,
+            show_progress=True,
+            desc="eval episodes",
+        )
         print(metrics)
     finally:
         trainer.close()

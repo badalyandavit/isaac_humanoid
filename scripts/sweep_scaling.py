@@ -5,6 +5,7 @@ import copy
 from dataclasses import asdict
 
 import pandas as pd
+from tqdm.auto import tqdm
 
 from humanoid_rl.config import HeavyTailConfig, load_heavytail_config
 from humanoid_rl.population.orchestrator import RobustHeavyTailOrchestrator
@@ -34,11 +35,18 @@ def make_workers(cfg: HeavyTailConfig) -> list[PPOTrainer]:
     return workers
 
 
-def train_worker_round(worker: PPOTrainer, round_timesteps: int, total_updates: int) -> None:
+def train_worker_round(
+    worker: PPOTrainer,
+    round_timesteps: int,
+    total_updates: int,
+    progress: tqdm | None = None,
+) -> None:
     batch_size = worker.cfg.num_envs * worker.cfg.num_steps
     updates = max(1, round_timesteps // batch_size)
     for _ in range(updates):
         worker.train_one_update(total_updates=total_updates)
+        if progress is not None:
+            progress.update(1)
 
 
 def run_one(base_cfg: HeavyTailConfig, n_agents: int, rounds: int | None) -> dict:
@@ -54,12 +62,32 @@ def run_one(base_cfg: HeavyTailConfig, n_agents: int, rounds: int | None) -> dic
     total_updates = cfg.total_rounds * updates_per_round
     final_row = None
     try:
-        for round_idx in range(1, cfg.total_rounds + 1):
-            for worker in workers:
-                train_worker_round(worker, cfg.round_timesteps, total_updates)
-            evals = [worker.evaluate(cfg.eval_episodes) for worker in workers]
-            result = orchestrator.orchestrate(round_idx, evals)
-            final_row = result["row"]
+        total_worker_updates = cfg.total_rounds * len(workers) * updates_per_round
+        with tqdm(
+            total=total_worker_updates,
+            desc=f"N={n_agents} PPO updates",
+            unit="update",
+        ) as update_bar:
+            round_iter = tqdm(
+                range(1, cfg.total_rounds + 1),
+                desc=f"N={n_agents} rounds",
+                unit="round",
+            )
+            for round_idx in round_iter:
+                for worker in workers:
+                    train_worker_round(worker, cfg.round_timesteps, total_updates, update_bar)
+                evals = [
+                    worker.evaluate(
+                        cfg.eval_episodes,
+                        show_progress=True,
+                        desc=f"N={n_agents} round {round_idx} worker {worker_idx} eval",
+                        leave=False,
+                    )
+                    for worker_idx, worker in enumerate(workers)
+                ]
+                result = orchestrator.orchestrate(round_idx, evals)
+                final_row = result["row"]
+                round_iter.set_postfix(best_score=f"{final_row['best_robust_score']:.1f}")
     finally:
         for worker in workers:
             worker.close()
@@ -82,7 +110,10 @@ def main() -> None:
     output_dir = ensure_dir(base_cfg.output_dir)
     write_json(output_dir / "scaling_config.json", asdict(base_cfg))
     agent_counts = [int(x.strip()) for x in args.agents.split(",") if x.strip()]
-    rows = [run_one(base_cfg, n, args.rounds) for n in agent_counts]
+    rows = [
+        run_one(base_cfg, n, args.rounds)
+        for n in tqdm(agent_counts, desc="scaling agent counts", unit="setting")
+    ]
     df = pd.DataFrame(rows)
     out = output_dir / "scaling_summary.csv"
     df.to_csv(out, index=False)
