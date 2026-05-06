@@ -1,0 +1,44 @@
+env_id: Humanoid-v5
+seed: 31
+num_workers: 2
+total_rounds: 20
+round_timesteps: 32768
+worker_num_envs: 4
+worker_num_steps: 512
+eval_episodes: 5
+graph: complete
+graph_gamma: 1
+output_dir: outputs/scaling_humanoid_v5
+device: cuda
+trim_fraction: 0.2
+q_low: 0.25
+median_weight: 0.5
+fall_penalty: 500.0
+energy_penalty: 0.0
+promote_margin: 50.0
+protect_top_fraction: 0.25
+mutate_lr_log_scale: 0.2
+mutate_ent_coef_log_scale: 0.25
+policy_noise_std: 0.001
+min_rounds_before_clone: 2
+max_clones_per_round: 2
+worker:
+  total_timesteps: 1000000
+  learning_rate: 0.0003
+  anneal_lr: true
+  gamma: 0.99
+  gae_lambda: 0.95
+  num_minibatches: 8
+  update_epochs: 8
+  clip_coef: 0.2
+  ent_coef: 0.0
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  target_kl: 0.03
+  hidden_sizes: [256, 256]
+  activation: tanh
+  obs_norm: true
+  reward_scale: 1.0
+  torch_compile: false
+  async_envs: false
+  save_interval_updates: 200

@@ -1,0 +1,27 @@
+env_id: Humanoid-v5
+seed: 1
+total_timesteps: 8192
+num_envs: 2
+num_steps: 128
+learning_rate: 0.0003
+anneal_lr: false
+gamma: 0.99
+gae_lambda: 0.95
+num_minibatches: 4
+update_epochs: 2
+clip_coef: 0.2
+ent_coef: 0.0
+vf_coef: 0.5
+max_grad_norm: 0.5
+target_kl: null
+hidden_sizes: [128, 128]
+activation: tanh
+obs_norm: true
+reward_scale: 1.0
+device: cuda
+torch_compile: false
+async_envs: false
+log_interval_updates: 1
+eval_episodes: 2
+save_interval_updates: 100
+output_dir: outputs/smoke_baseline

@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv/
+venv/
+outputs/
+runs/
+wandb/
+*.mp4
+*.pt
+*.pth
+.DS_Store

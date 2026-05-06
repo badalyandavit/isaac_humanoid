@@ -1,0 +1,32 @@
+env_id: Humanoid-v5
+seed: 11
+num_workers: 4
+total_rounds: 50
+round_timesteps: 65536
+worker_num_envs: 4
+worker_num_steps: 512
+eval_episodes: 5
+average_every_rounds: 1
+reset_optimizer_after_average: true
+output_dir: outputs/average_population_humanoid_v5
+device: cuda
+worker:
+  total_timesteps: 1000000
+  learning_rate: 0.0003
+  anneal_lr: true
+  gamma: 0.99
+  gae_lambda: 0.95
+  num_minibatches: 8
+  update_epochs: 8
+  clip_coef: 0.2
+  ent_coef: 0.0
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  target_kl: 0.03
+  hidden_sizes: [256, 256]
+  activation: tanh
+  obs_norm: true
+  reward_scale: 1.0
+  torch_compile: false
+  async_envs: false
+  save_interval_updates: 200

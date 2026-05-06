@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "humanoid-population-ppo"
+version = "0.1.0"
+description = "Population PPO for Gymnasium MuJoCo Humanoid with robust heavy-tail orchestration."
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.2",
+  "gymnasium[mujoco]>=1.0.0",
+  "numpy>=1.24",
+  "PyYAML>=6.0",
+  "pandas>=2.0",
+  "tensorboard>=2.14",
+  "tqdm>=4.66",
+  "imageio>=2.34",
+  "imageio-ffmpeg>=0.5"
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.5", "pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
