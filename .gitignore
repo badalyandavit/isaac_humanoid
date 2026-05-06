@@ -4,10 +4,18 @@ __pycache__/
 .env
 .venv/
 venv/
-outputs/
 runs/
 wandb/
 *.mp4
 *.pt
 *.pth
 .DS_Store
+
+# Keep large training artifacts out of git, but allow final report artifacts.
+outputs/*
+!outputs/eval_dataset.csv
+!outputs/eval_summary.csv
+!outputs/analysis/
+!outputs/analysis/**
+!outputs/videos/
+!outputs/videos/*.mp4
