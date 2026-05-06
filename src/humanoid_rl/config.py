@@ -79,8 +79,8 @@ class SACConfig:
 class PPOActionAverageConfig:
     env_id: str = "Humanoid-v5"
     seed: int = 101
-    num_train_agents: int = 4
-    num_average_agents: int = 4
+    num_train_agents: int = 3
+    num_average_agents: int = 3
     total_timesteps: int = 1_000_000
     budget_mode: str = "aggregate"
     eval_episodes: int = 10
@@ -94,8 +94,8 @@ class PPOActionAverageConfig:
 class SACActionAverageConfig:
     env_id: str = "Humanoid-v5"
     seed: int = 202
-    num_train_agents: int = 4
-    num_average_agents: int = 4
+    num_train_agents: int = 3
+    num_average_agents: int = 3
     total_timesteps: int = 1_000_000
     budget_mode: str = "aggregate"
     eval_episodes: int = 10
@@ -115,35 +115,15 @@ class PopulationConfig:
     worker_num_envs: int = 4
     worker_num_steps: int = 512
     eval_episodes: int = 8
-    graph: str = "complete"
-    graph_gamma: int = 1
     output_dir: str = "outputs/population"
     device: str = "cuda"
     worker: PPOConfig = field(default_factory=PPOConfig)
 
 
 @dataclass
-class AverageConfig(PopulationConfig):
+class ParameterAverageConfig(PopulationConfig):
     average_every_rounds: int = 1
     reset_optimizer_after_average: bool = True
-
-
-@dataclass
-class HeavyTailConfig(PopulationConfig):
-    trim_fraction: float = 0.2
-    q_low: float = 0.25
-    median_weight: float = 0.5
-    fall_penalty: float = 500.0
-    energy_penalty: float = 0.0
-    promote_margin: float = 50.0
-    protect_top_fraction: float = 0.25
-    mutate_lr_log_scale: float = 0.20
-    mutate_ent_coef_log_scale: float = 0.25
-    policy_noise_std: float = 0.001
-    min_rounds_before_clone: int = 2
-    max_clones_per_round: int = 2
-    distill_elites_after: bool = False
-    elite_fraction: float = 0.25
 
 
 def _merge_dict_into_dataclass(obj: Any, data: dict[str, Any]) -> Any:
@@ -218,20 +198,8 @@ def load_sac_action_average_config(path: str | Path) -> SACActionAverageConfig:
     return cfg
 
 
-def load_average_config(path: str | Path) -> AverageConfig:
-    cfg = AverageConfig()
-    data = load_yaml(path)
-    if "worker" not in data:
-        data["worker"] = {}
-    data["worker"].setdefault("env_id", data.get("env_id", cfg.env_id))
-    data["worker"].setdefault("device", data.get("device", cfg.device))
-    data["worker"].setdefault("num_envs", data.get("worker_num_envs", cfg.worker_num_envs))
-    data["worker"].setdefault("num_steps", data.get("worker_num_steps", cfg.worker_num_steps))
-    return _merge_dict_into_dataclass(cfg, data)
-
-
-def load_heavytail_config(path: str | Path) -> HeavyTailConfig:
-    cfg = HeavyTailConfig()
+def load_parameter_average_config(path: str | Path) -> ParameterAverageConfig:
+    cfg = ParameterAverageConfig()
     data = load_yaml(path)
     if "worker" not in data:
         data["worker"] = {}

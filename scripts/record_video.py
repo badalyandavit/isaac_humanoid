@@ -9,7 +9,7 @@ import sys
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="configs/baseline_ppo.yaml")
+    parser.add_argument("--config", type=str, default="configs/fair_ppo_baseline.yaml")
     parser.add_argument("--checkpoint", type=str, required=True)
     parser.add_argument("--out", type=str, default="outputs/videos/humanoid_policy.mp4")
     parser.add_argument("--max-steps", type=int, default=1000)
@@ -33,21 +33,14 @@ def configure_rendering(mujoco_gl: str | None) -> None:
 
 def make_video_config(config_path: str, output_dir: Path):
     from humanoid_rl.config import (
-        load_average_config,
-        load_heavytail_config,
+        load_parameter_average_config,
         load_ppo_config,
         load_yaml,
     )
 
     data = load_yaml(config_path)
     if "average_every_rounds" in data:
-        cfg = load_average_config(config_path)
-        video_cfg = copy.deepcopy(cfg.worker)
-        video_cfg.env_id = cfg.env_id
-        video_cfg.seed = cfg.seed
-        video_cfg.device = cfg.device
-    elif "promote_margin" in data or "trim_fraction" in data:
-        cfg = load_heavytail_config(config_path)
+        cfg = load_parameter_average_config(config_path)
         video_cfg = copy.deepcopy(cfg.worker)
         video_cfg.env_id = cfg.env_id
         video_cfg.seed = cfg.seed

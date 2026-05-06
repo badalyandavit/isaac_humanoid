@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ppo-pop-dir", type=str, default="outputs/fair_ppo_population")
     parser.add_argument("--sac-pop-config", type=str, default="configs/fair_sac_population.yaml")
     parser.add_argument("--sac-pop-dir", type=str, default="outputs/fair_sac_population")
-    parser.add_argument("--num-average-agents", type=str, default="1,2,4,8")
+    parser.add_argument("--num-average-agents", type=str, default="2,3")
     parser.add_argument("--aggregators", type=str, default="mean", help="Comma list: mean,median,trimmed_mean")
     parser.add_argument("--trim-fraction", type=float, default=0.2)
     parser.add_argument("--episodes", type=int, default=None)
@@ -285,7 +285,7 @@ def main() -> None:
     args = parse_args()
     configure_rendering(args.mujoco_gl)
     out_dir = ensure_dir(args.out_dir)
-    k_values = [int(x.strip()) for x in args.num_average_agents.split(",") if x.strip()]
+    k_values = sorted({int(x.strip()) for x in args.num_average_agents.split(",") if x.strip() and int(x.strip()) >= 2})
     aggregators = [x.strip() for x in args.aggregators.split(",") if x.strip()]
     all_episode_rows: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []

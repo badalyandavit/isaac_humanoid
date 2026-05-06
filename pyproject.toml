@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "humanoid-population-ppo"
 version = "0.1.0"
-description = "Population PPO for Gymnasium MuJoCo Humanoid with robust heavy-tail orchestration."
+description = "Fair PPO and SAC baselines with deterministic population action averaging for Gymnasium MuJoCo Humanoid."
 requires-python = ">=3.10"
 dependencies = [
   "torch>=2.2",

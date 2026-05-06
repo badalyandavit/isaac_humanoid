@@ -24,4 +24,4 @@ async_envs: false
 log_interval_updates: 1
 eval_episodes: 2
 save_interval_updates: 100
-output_dir: outputs/smoke_baseline
+output_dir: outputs/smoke_fair_ppo

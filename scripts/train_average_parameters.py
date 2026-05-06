@@ -7,19 +7,19 @@ from dataclasses import asdict
 import numpy as np
 from tqdm.auto import tqdm
 
-from humanoid_rl.config import AverageConfig, load_average_config
-from humanoid_rl.population.averaging import average_state_dicts
+from humanoid_rl.config import ParameterAverageConfig, load_parameter_average_config
+from humanoid_rl.averaging import average_state_dicts
 from humanoid_rl.ppo import PPOTrainer
 from humanoid_rl.utils import CSVLogger, ensure_dir, write_json
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="configs/population_average.yaml")
+    parser.add_argument("--config", type=str, default="configs/population_average_parameters.yaml")
     return parser.parse_args()
 
 
-def make_workers(cfg: AverageConfig) -> list[PPOTrainer]:
+def make_workers(cfg: ParameterAverageConfig) -> list[PPOTrainer]:
     workers: list[PPOTrainer] = []
     for i in range(cfg.num_workers):
         worker_cfg = copy.deepcopy(cfg.worker)
@@ -29,7 +29,7 @@ def make_workers(cfg: AverageConfig) -> list[PPOTrainer]:
         worker_cfg.num_steps = cfg.worker_num_steps
         worker_cfg.device = cfg.device
         worker_cfg.output_dir = str(ensure_dir(cfg.output_dir) / f"worker_{i}")
-        workers.append(PPOTrainer(worker_cfg, run_name=f"avg_worker_{i}"))
+        workers.append(PPOTrainer(worker_cfg, run_name=f"param_avg_worker_{i}"))
     return workers
 
 
@@ -49,18 +49,18 @@ def train_worker_round(
 
 def main() -> None:
     args = parse_args()
-    cfg = load_average_config(args.config)
+    cfg = load_parameter_average_config(args.config)
     output_dir = ensure_dir(cfg.output_dir)
-    write_json(output_dir / "average_config.json", asdict(cfg))
+    write_json(output_dir / "parameter_average_config.json", asdict(cfg))
     workers = make_workers(cfg)
-    logger = CSVLogger(output_dir / "average_rounds.csv")
+    logger = CSVLogger(output_dir / "parameter_average_rounds.csv")
     batch_size = cfg.worker_num_envs * cfg.worker_num_steps
     updates_per_round = max(1, cfg.round_timesteps // batch_size)
     total_updates = cfg.total_rounds * updates_per_round
     try:
         total_worker_updates = cfg.total_rounds * len(workers) * updates_per_round
-        with tqdm(total=total_worker_updates, desc="average PPO updates", unit="update") as update_bar:
-            rounds = tqdm(range(1, cfg.total_rounds + 1), desc="average rounds", unit="round")
+        with tqdm(total=total_worker_updates, desc="parameter-average PPO updates", unit="update") as update_bar:
+            rounds = tqdm(range(1, cfg.total_rounds + 1), desc="parameter-average rounds", unit="round")
             for round_idx in rounds:
                 for worker in workers:
                     train_worker_round(worker, cfg.round_timesteps, total_updates, update_bar)
@@ -103,7 +103,7 @@ def main() -> None:
                     workers[best_idx].save(output_dir / "checkpoints" / f"best_round_{round_idx}.pt")
         final_state = average_state_dicts([worker.policy_state_dict_cpu() for worker in workers])
         workers[0].load_policy_state_dict(final_state)
-        workers[0].save(output_dir / "checkpoints" / "final_average.pt")
+        workers[0].save(output_dir / "checkpoints" / "final_parameter_average.pt")
     finally:
         for worker in workers:
             worker.close()

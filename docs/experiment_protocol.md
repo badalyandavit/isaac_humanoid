@@ -1,56 +1,59 @@
-# Experiment protocol
+# Experiment Protocol
 
-## Hypothesis
-
-Humanoid PPO training has heavy-tailed outcomes across random seeds and population branches. Therefore, naive averaging can underperform robust orchestration because it destroys incompatible gait modes and lets outlier returns dominate selection.
+Use the fair PPO/SAC suite as the main project experiment.
 
 ## Methods
 
-### Baseline PPO
+1. Single PPO baseline
+2. Single SAC baseline
+3. PPO independent-agent population with deterministic action averaging at evaluation
+4. SAC independent-agent population with deterministic action averaging at evaluation
 
-A single PPO learner with vectorized Humanoid environments.
+The population methods do not average parameters or actions during training.
+They train independent agents with different seeds. Evaluation loads the first
+`K` trained agents and aggregates deterministic mean actions.
 
-### Naive Average PPO
+## Budget
 
-`N` PPO learners train independently for one round. After evaluation, their parameters are averaged and broadcast back to all workers. This is a deliberately simple population baseline.
-
-### Robust Cooperative Heavy-Tail PPO
-
-Each worker is treated as an agent on a communication graph. The graph can be complete, ring, line, or star. During each orchestration round, each worker sends a compact message:
-
-```text
-worker_id, robust_score, evaluation_distribution, policy_state, learning_rate, entropy_coef
-```
-
-Visible messages are restricted to the `graph_gamma`-hop neighborhood. The orchestrator protects the top fraction of workers and replaces weak workers only if a visible neighbor beats them by a robust margin.
-
-## Robust score
+Use `budget_mode: aggregate` for the main comparison:
 
 ```text
-score = q25_return + median_weight * median_return
-        - fall_penalty * fall_rate
-        - energy_penalty * abs(mean_ctrl_reward)
+per-agent train steps = total_timesteps / num_train_agents
 ```
 
-This intentionally punishes fragile policies that sometimes get high return but often fall early.
+This keeps aggregate environment interaction comparable with the single-agent
+baselines.
 
-## Scaling-law study
+## Evaluation
 
 Run:
 
 ```bash
-python scripts/sweep_scaling.py --config configs/scaling_sweep.yaml --agents 1,2,4,8
+python3 scripts/evaluate_fair.py \
+  --num-average-agents 2,3 \
+  --aggregators mean,median,trimmed_mean \
+  --episodes 20 \
+  --video-episodes 1
 ```
 
-Suggested dependent variables:
+Report:
 
-- best robust score after fixed total environment steps
-- median robust score across workers
-- environment steps to pass a threshold
-- clone events per round
-- wall-clock time
-- robustness gap: mean return minus q25 return
+- mean return
+- median return
+- 25% return
+- episode length / alive duration
+- fall rate
+- action L2 norm
+- action smoothness
+- total environment steps
+- number of agents used
+- aggregation method
 
-## Fairness notes
+## Main Table
 
-For strict budget fairness, compare methods using the same total environment interactions. If `N` workers each use `S` steps per round, either divide per-worker steps by `N` or report both per-worker and total population steps.
+| Method | Algorithm | K | Aggregate env steps | Mean return | Median return | 25% return | Fall rate |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Single PPO | PPO | 1 | fixed | | | | |
+| Single SAC | SAC | 1 | fixed | | | | |
+| PPO action average | PPO | 2,3 | fixed | | | | |
+| SAC action average | SAC | 2,3 | fixed | | | | |
