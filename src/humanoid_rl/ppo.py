@@ -309,7 +309,7 @@ class PPOTrainer:
         )
 
     def load(self, path: str | Path, load_optimizer: bool = True) -> None:
-        payload = torch.load(path, map_location=self.device)
+        payload = torch.load(path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(payload["model"])
         if load_optimizer and "optimizer" in payload:
             self.optimizer.load_state_dict(payload["optimizer"])
