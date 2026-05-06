@@ -6,6 +6,7 @@ __pycache__/
 venv/
 runs/
 wandb/
+old/
 *.mp4
 *.pt
 *.pth
