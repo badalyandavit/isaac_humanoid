@@ -1,0 +1,34 @@
+env_id: Humanoid-v5
+seed: 202
+num_train_agents: 8
+num_average_agents: 4
+total_timesteps: 1000000
+budget_mode: aggregate
+eval_episodes: 10
+aggregator: mean
+output_dir: outputs/fair_sac_population
+device: cuda
+agent:
+  num_envs: 1
+  learning_rate: 0.0003
+  q_learning_rate: 0.0003
+  gamma: 0.99
+  tau: 0.005
+  buffer_size: 1000000
+  batch_size: 256
+  learning_starts: 10000
+  train_freq: 1
+  gradient_steps: 1
+  policy_frequency: 2
+  target_network_frequency: 1
+  alpha: 0.2
+  autotune_alpha: true
+  target_entropy:
+  hidden_sizes: [256, 256]
+  activation: relu
+  obs_norm: true
+  reward_scale: 1.0
+  max_grad_norm: 10.0
+  async_envs: false
+  log_interval_steps: 5000
+  eval_episodes: 10

@@ -10,12 +10,20 @@ The intended research question is:
 
 > When Humanoid PPO outcomes are heavy-tailed across seeds/workers, does robust communication and promotion outperform naive averaging and independent PPO?
 
+The repo also includes a fair-budget PPO/SAC baseline suite where population
+methods train independent agents and average deterministic actions only during
+evaluation. This is the recommended path for a course-project comparison.
+
 ## Repository layout
 
 ```text
 configs/
   baseline_ppo.yaml
   baseline_smoke.yaml
+  fair_ppo_baseline.yaml
+  fair_ppo_population.yaml
+  fair_sac_baseline.yaml
+  fair_sac_population.yaml
   population_average.yaml
   population_heavytail.yaml
   population_heavytail_smoke.yaml
@@ -33,8 +41,12 @@ scripts/
   sweep_scaling.py
   collect_eval_dataset.py
   analyze_results.py
+  evaluate_fair.py
   evaluate.py
   record_video.py
+  train_ppo_population.py
+  train_sac_baseline.py
+  train_sac_population.py
 src/humanoid_rl/
   config.py
   envs.py
@@ -69,7 +81,58 @@ KEEP_RUNPOD_TORCH=0 bash runpod/setup_runpod.sh
 make smoke
 ```
 
-This verifies that MuJoCo, Gymnasium, Torch, vectorized environments, PPO updates, evaluation, and heavy-tail orchestration all run. It is not meant to solve Humanoid.
+This verifies that MuJoCo, Gymnasium, Torch, vectorized environments, PPO updates,
+SAC updates, independent PPO population training, evaluation, and heavy-tail
+orchestration all run. It is not meant to solve Humanoid.
+
+## Fair PPO/SAC Experiment Suite
+
+This is the course-project comparison path. It uses the same aggregate
+environment-step budget for single-agent and population methods by default.
+For the population configs, `budget_mode: aggregate` means:
+
+```text
+per-agent steps = total_timesteps / num_train_agents
+```
+
+Train the four methods:
+
+```bash
+make fair-ppo
+make fair-sac
+make fair-ppo-pop
+make fair-sac-pop
+```
+
+Evaluate deterministic single policies and deterministic action averages:
+
+```bash
+make fair-eval
+```
+
+The evaluator supports K values and robust aggregators:
+
+```bash
+python scripts/evaluate_fair.py \
+  --num-average-agents 1,2,4,8 \
+  --aggregators mean,median,trimmed_mean \
+  --episodes 20 \
+  --video-episodes 1
+```
+
+Outputs:
+
+```text
+outputs/fair_eval/
+  episodes.csv
+  summary.csv
+  summary.md
+  videos/
+```
+
+The fair population methods do not average weights or actions during training.
+They train independent PPO/SAC agents with different seeds and only average
+deterministic mean actions during evaluation.
 
 ## Train baseline PPO
 

@@ -17,5 +17,7 @@ outputs/*
 !outputs/eval_summary.csv
 !outputs/analysis/
 !outputs/analysis/**
+!outputs/fair_eval/
+!outputs/fair_eval/**
 !outputs/videos/
 !outputs/videos/*.mp4

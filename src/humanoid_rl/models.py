@@ -75,3 +75,65 @@ class ActorCritic(nn.Module):
     def act_deterministic(self, obs: torch.Tensor) -> torch.Tensor:
         mean = self.actor_mean(obs)
         return torch.max(torch.min(mean, self.action_high), self.action_low)
+
+
+class SquashedGaussianActor(nn.Module):
+    def __init__(
+        self,
+        obs_dim: int,
+        action_dim: int,
+        action_low: np.ndarray,
+        action_high: np.ndarray,
+        hidden_sizes: Sequence[int] = (256, 256),
+        activation: str = "relu",
+        log_std_min: float = -5.0,
+        log_std_max: float = 2.0,
+    ):
+        super().__init__()
+        self.net = mlp(obs_dim, hidden_sizes, 2 * action_dim, activation, output_std=0.01)
+        self.log_std_min = log_std_min
+        self.log_std_max = log_std_max
+        action_low_t = torch.as_tensor(action_low, dtype=torch.float32)
+        action_high_t = torch.as_tensor(action_high, dtype=torch.float32)
+        self.register_buffer("action_low", action_low_t)
+        self.register_buffer("action_high", action_high_t)
+        self.register_buffer("action_scale", (action_high_t - action_low_t) / 2.0)
+        self.register_buffer("action_bias", (action_high_t + action_low_t) / 2.0)
+
+    def forward(self, obs: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        mean, log_std = self.net(obs).chunk(2, dim=-1)
+        log_std = torch.clamp(log_std, self.log_std_min, self.log_std_max)
+        return mean, log_std
+
+    def sample(self, obs: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        mean, log_std = self.forward(obs)
+        std = log_std.exp()
+        normal = Normal(mean, std)
+        raw_action = normal.rsample()
+        squashed = torch.tanh(raw_action)
+        action = squashed * self.action_scale + self.action_bias
+        log_prob = normal.log_prob(raw_action)
+        correction = torch.log(self.action_scale * (1.0 - squashed.pow(2)) + 1e-6)
+        log_prob = (log_prob - correction).sum(dim=-1, keepdim=True)
+        deterministic = torch.tanh(mean) * self.action_scale + self.action_bias
+        return action, log_prob, deterministic
+
+    @torch.no_grad()
+    def act_deterministic(self, obs: torch.Tensor) -> torch.Tensor:
+        mean, _ = self.forward(obs)
+        return torch.tanh(mean) * self.action_scale + self.action_bias
+
+
+class QNetwork(nn.Module):
+    def __init__(
+        self,
+        obs_dim: int,
+        action_dim: int,
+        hidden_sizes: Sequence[int] = (256, 256),
+        activation: str = "relu",
+    ):
+        super().__init__()
+        self.q = mlp(obs_dim + action_dim, hidden_sizes, 1, activation, output_std=1.0)
+
+    def forward(self, obs: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        return self.q(torch.cat([obs, action], dim=-1)).squeeze(-1)

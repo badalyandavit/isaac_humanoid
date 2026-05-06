@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,13 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
 
 from humanoid_rl.config import PPOConfig
-from humanoid_rl.envs import RunningMeanStd, extract_episode_stats, make_single_env, make_vector_env
+from humanoid_rl.envs import (
+    RunningMeanStd,
+    extract_episode_stats,
+    info_array_mean,
+    make_vector_env,
+    scalar_info,
+)
 from humanoid_rl.models import ActorCritic
 from humanoid_rl.rollout import RolloutStorage
 from humanoid_rl.utils import CSVLogger, ensure_dir, resolve_device, set_seed, write_json
@@ -52,7 +59,7 @@ class PPOTrainer:
         self.csv_logger = CSVLogger(self.output_dir / f"{self.run_name}_train.csv")
         self.global_step = 0
         self.update_idx = 0
-        self.start_time = None
+        self.start_time = time.perf_counter()
         obs, _ = self.envs.reset(seed=cfg.seed)
         obs = obs.reshape(cfg.num_envs, self.obs_dim).astype(np.float32)
         self.obs_rms = RunningMeanStd((self.obs_dim,))
@@ -74,10 +81,15 @@ class PPOTrainer:
             self.obs_rms.update(obs)
         return self.obs_rms.normalize(obs)
 
-    def collect_rollout(self) -> tuple[RolloutStorage, list[dict[str, float]]]:
+    def collect_rollout(self) -> tuple[RolloutStorage, list[dict[str, float]], dict[str, float]]:
         cfg = self.cfg
         storage = RolloutStorage(cfg.num_steps, cfg.num_envs, self.obs_dim, self.action_dim, self.device)
         episode_stats: list[dict[str, float]] = []
+        action_l2_values: list[float] = []
+        action_smoothness_values: list[float] = []
+        forward_reward_values: list[float] = []
+        ctrl_cost_values: list[float] = []
+        prev_actions: np.ndarray | None = None
         for step in range(cfg.num_steps):
             storage.obs[step] = self.next_obs
             storage.dones[step] = self.next_done
@@ -87,9 +99,19 @@ class PPOTrainer:
             storage.logprobs[step] = logprob
             storage.values[step] = value
             actions_np = env_action.detach().cpu().numpy()
+            action_l2_values.append(float(np.mean(np.linalg.norm(actions_np, axis=-1))))
+            if prev_actions is not None:
+                action_smoothness_values.append(float(np.mean(np.square(actions_np - prev_actions))))
+            prev_actions = actions_np.copy()
             next_obs, reward, terminated, truncated, infos = self.envs.step(actions_np)
             done = np.logical_or(terminated, truncated)
             episode_stats.extend(extract_episode_stats(infos))
+            forward_reward = info_array_mean(infos, "reward_forward", "reward_linvel", "x_velocity")
+            ctrl_cost = info_array_mean(infos, "reward_ctrl", "reward_quadctrl", "control_cost", "reward_ctrl_cost")
+            if forward_reward is not None:
+                forward_reward_values.append(forward_reward)
+            if ctrl_cost is not None:
+                ctrl_cost_values.append(ctrl_cost)
             storage.rewards[step] = torch.as_tensor(reward, dtype=torch.float32, device=self.device) * cfg.reward_scale
             self.global_step += cfg.num_envs
             next_obs = self._normalize_obs_np(next_obs, update=True)
@@ -98,15 +120,21 @@ class PPOTrainer:
         with torch.no_grad():
             next_value = self.model.get_value(self.next_obs)
         storage.compute_gae(next_value, self.next_done, cfg.gamma, cfg.gae_lambda)
-        return storage, episode_stats
+        rollout_metrics = {
+            "action_l2_norm": float(np.mean(action_l2_values)) if action_l2_values else 0.0,
+            "action_smoothness": float(np.mean(action_smoothness_values)) if action_smoothness_values else 0.0,
+            "mean_forward_reward": float(np.mean(forward_reward_values)) if forward_reward_values else 0.0,
+            "mean_ctrl_cost": float(np.mean(ctrl_cost_values)) if ctrl_cost_values else 0.0,
+        }
+        return storage, episode_stats, rollout_metrics
 
     def update(self, storage: RolloutStorage) -> dict[str, float]:
         cfg = self.cfg
         batch = storage.flatten()
         batch_size = cfg.num_envs * cfg.num_steps
-        minibatch_size = batch_size // cfg.num_minibatches
+        minibatch_size = int(cfg.minibatch_size or (batch_size // cfg.num_minibatches))
         if minibatch_size <= 0:
-            raise ValueError("num_envs * num_steps must be >= num_minibatches")
+            raise ValueError("minibatch_size must be positive")
         b_inds = np.arange(batch_size)
         clipfracs: list[float] = []
         approx_kl_value = 0.0
@@ -201,20 +229,29 @@ class PPOTrainer:
                 progress.set_postfix(postfix)
 
     def train_one_update(self, total_updates: int | None = None) -> dict[str, float]:
+        update_start = time.perf_counter()
         self.update_idx += 1
         if self.cfg.anneal_lr and total_updates is not None:
             frac = 1.0 - (self.update_idx - 1.0) / total_updates
             lr_now = frac * self.cfg.learning_rate
             for param_group in self.optimizer.param_groups:
                 param_group["lr"] = lr_now
-        storage, episode_stats = self.collect_rollout()
+        storage, episode_stats, rollout_metrics = self.collect_rollout()
         metrics = self.update(storage)
+        update_elapsed = time.perf_counter() - update_start
+        wall_clock_s = time.perf_counter() - self.start_time
         returns = [x["return"] for x in episode_stats]
         lengths = [x["length"] for x in episode_stats]
         row = {
             "update": self.update_idx,
             "global_step": self.global_step,
+            "total_env_steps": self.global_step,
+            "wall_clock_s": wall_clock_s,
+            "env_steps_per_second": (self.cfg.num_envs * self.cfg.num_steps) / max(1e-9, update_elapsed),
             "lr": self.optimizer.param_groups[0]["lr"],
+            "num_trained_agents_used": 1,
+            "aggregation_method": "none",
+            **rollout_metrics,
             **metrics,
         }
         if returns:
@@ -245,6 +282,9 @@ class PPOTrainer:
         returns: list[float] = []
         lengths: list[int] = []
         reward_ctrl_values: list[float] = []
+        reward_forward_values: list[float] = []
+        action_l2_values: list[float] = []
+        action_smoothness_values: list[float] = []
         episode_iter = range(episodes)
         if show_progress:
             episode_iter = tqdm(
@@ -259,6 +299,10 @@ class PPOTrainer:
             ep_return = 0.0
             ep_len = 0
             ep_ctrl = 0.0
+            ep_forward = 0.0
+            ep_action_l2: list[float] = []
+            ep_action_smoothness: list[float] = []
+            prev_action: np.ndarray | None = None
             while not done:
                 obs_batch = np.asarray(obs, dtype=np.float32).reshape(1, self.obs_dim)
                 if self.cfg.obs_norm:
@@ -268,15 +312,25 @@ class PPOTrainer:
                     action_t = self.model.act_deterministic(obs_t)
                 else:
                     action_t, _, _, _, _ = self.model.get_action_and_value(obs_t)
-                obs, reward, terminated, truncated, info = env.step(action_t.cpu().numpy()[0])
+                action_np = action_t.cpu().numpy()[0]
+                ep_action_l2.append(float(np.linalg.norm(action_np)))
+                if prev_action is not None:
+                    ep_action_smoothness.append(float(np.mean(np.square(action_np - prev_action))))
+                prev_action = action_np.copy()
+                obs, reward, terminated, truncated, info = env.step(action_np)
                 done = bool(terminated or truncated)
                 ep_return += float(reward)
                 ep_len += 1
-                ctrl = info.get("reward_ctrl", info.get("reward_quadctrl", 0.0))
-                ep_ctrl += float(ctrl)
+                ctrl = scalar_info(info, "reward_ctrl", "reward_quadctrl", "control_cost", "reward_ctrl_cost") or 0.0
+                forward = scalar_info(info, "reward_forward", "reward_linvel", "x_velocity") or 0.0
+                ep_ctrl += ctrl
+                ep_forward += forward
             returns.append(ep_return)
             lengths.append(ep_len)
             reward_ctrl_values.append(ep_ctrl / max(1, ep_len))
+            reward_forward_values.append(ep_forward / max(1, ep_len))
+            action_l2_values.append(float(np.mean(ep_action_l2)) if ep_action_l2 else 0.0)
+            action_smoothness_values.append(float(np.mean(ep_action_smoothness)) if ep_action_smoothness else 0.0)
         env.close()
         returns_np = np.asarray(returns, dtype=np.float64)
         lengths_np = np.asarray(lengths, dtype=np.float64)
@@ -289,8 +343,15 @@ class PPOTrainer:
             "q75_return": float(np.quantile(returns_np, 0.75)),
             "std_return": float(np.std(returns_np)),
             "mean_length": float(np.mean(lengths_np)),
+            "success_alive_duration": float(np.mean(lengths_np)),
             "fall_rate": float(np.mean(lengths_np < 999.0)),
             "mean_ctrl_reward": float(np.mean(reward_ctrl_values)),
+            "mean_forward_reward": float(np.mean(reward_forward_values)),
+            "action_l2_norm": float(np.mean(action_l2_values)),
+            "action_smoothness": float(np.mean(action_smoothness_values)),
+            "total_env_steps": self.global_step,
+            "num_trained_agents_used": 1,
+            "aggregation_method": "none",
         }
 
     def save(self, path: str | Path) -> None:

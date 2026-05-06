@@ -91,3 +91,27 @@ def extract_episode_stats(infos: dict) -> list[dict[str, float]]:
         ep = item["episode"]
         stats.append({"return": float(ep["r"]), "length": float(ep["l"])})
     return stats
+
+
+def info_array_mean(infos: dict, *keys: str) -> float | None:
+    values: list[float] = []
+    for key in keys:
+        if key not in infos:
+            continue
+        item = infos[key]
+        arr = np.asarray(item, dtype=np.float64).reshape(-1)
+        values.extend(float(x) for x in arr if np.isfinite(x))
+    if not values:
+        return None
+    return float(np.mean(values))
+
+
+def scalar_info(info: dict, *keys: str) -> float | None:
+    for key in keys:
+        if key in info:
+            value = info[key]
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+    return None
