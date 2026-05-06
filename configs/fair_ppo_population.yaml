@@ -2,7 +2,7 @@ env_id: Humanoid-v5
 seed: 101
 num_train_agents: 3
 num_average_agents: 3
-total_timesteps: 1000000
+total_timesteps: 15000000
 budget_mode: aggregate
 eval_episodes: 10
 aggregator: mean

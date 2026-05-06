@@ -1,6 +1,6 @@
 env_id: Humanoid-v5
 seed: 1
-total_timesteps: 1000000
+total_timesteps: 15000000
 num_envs: 8
 num_steps: 1024
 learning_rate: 0.0003
