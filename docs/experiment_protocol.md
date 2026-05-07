@@ -51,3 +51,15 @@ Report:
 |---|---|---:|---:|---:|---:|---:|
 | Single PPO | PPO | fixed | | | | |
 | Single SAC | SAC | fixed | | | | |
+
+## Optional Isaac PPO
+
+The repo includes a separate single-agent Isaac Lab PPO baseline:
+
+```bash
+make isaac-ppo-baseline
+```
+
+Treat this as a simulator-backend extension. It uses
+`Isaac-Humanoid-Direct-v0` and the Isaac Lab RSL-RL PPO runner, so its scores
+should be reported separately from Gymnasium/MuJoCo `Humanoid-v5`.

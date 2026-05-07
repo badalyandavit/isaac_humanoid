@@ -19,14 +19,17 @@ configs/
   fair_ppo_smoke.yaml
   fair_sac_baseline.yaml
   fair_sac_smoke.yaml
+  isaac_ppo_baseline.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
+  train_isaac_ppo_baseline.py
   evaluate_single.py
   record_video.py
 src/humanoid_rl/
   config.py
   envs.py
+  isaaclab.py
   models.py
   ppo.py
   replay.py
@@ -72,6 +75,26 @@ Outputs are written under:
 ```text
 outputs/fair_ppo_baseline/
 outputs/fair_sac_baseline/
+```
+
+## Optional Isaac PPO
+
+There is also a single-agent Isaac Lab PPO baseline. This is not a population
+method and is not directly comparable to Gymnasium/MuJoCo `Humanoid-v5`,
+because it uses Isaac Lab's `Isaac-Humanoid-Direct-v0` task and RSL-RL PPO
+runner.
+
+Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
+
+```bash
+bash runpod/setup_isaaclab_runpod.sh
+make isaac-ppo-baseline
+```
+
+The wrapper writes a manifest to:
+
+```text
+outputs/isaac_ppo_baseline/manifest.json
 ```
 
 ## Evaluate
