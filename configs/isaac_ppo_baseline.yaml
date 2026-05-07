@@ -1,3 +1,6 @@
+baseline_name: isaac_v0_official_humanoid_direct
+simulator_backend: Isaac Lab
+reward_version: isaac_v0_official
 isaaclab_dir: /workspace/IsaacLab
 task: Isaac-Humanoid-Direct-v0
 seed: 301

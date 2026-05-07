@@ -24,6 +24,7 @@ scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
   train_isaac_ppo_baseline.py
+  write_isaac_baseline_spec.py
   evaluate_single.py
   plot_learning_curves.py
   record_video.py
@@ -85,6 +86,26 @@ method and is not directly comparable to Gymnasium/MuJoCo `Humanoid-v5`,
 because it uses Isaac Lab's `Isaac-Humanoid-Direct-v0` task and RSL-RL PPO
 runner.
 
+The Isaac baseline is named:
+
+```text
+isaac_v0_official_humanoid_direct
+```
+
+It uses the official Isaac Lab direct humanoid simulator and reward:
+
+- simulator timestep `dt = 1 / 120`
+- control decimation `2`
+- plane terrain with static/dynamic friction `1.0`
+- 21-dimensional continuous action space
+- 75-dimensional policy observation space
+- episode length `15s`
+- termination when torso height is below `0.8`
+- reward terms for progress, alive bonus, heading alignment, uprightness,
+  action cost, energy cost, joint-limit cost, and death cost
+
+Reference: <https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html>
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
@@ -96,6 +117,20 @@ The wrapper writes a manifest to:
 
 ```text
 outputs/isaac_ppo_baseline/manifest.json
+```
+
+Write the Isaac simulator/reward spec without launching Isaac:
+
+```bash
+make isaac-baseline-spec
+```
+
+Outputs:
+
+```text
+outputs/isaac_ppo_baseline/
+  baseline_spec.json
+  baseline_spec.md
 ```
 
 ## Evaluate

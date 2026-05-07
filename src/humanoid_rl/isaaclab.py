@@ -14,6 +14,9 @@ from humanoid_rl.utils import ensure_dir, write_json
 
 @dataclass
 class IsaacLabPPOConfig:
+    baseline_name: str = "isaac_v0_official_humanoid_direct"
+    simulator_backend: str = "Isaac Lab"
+    reward_version: str = "isaac_v0_official"
     isaaclab_dir: str = "/workspace/IsaacLab"
     task: str = "Isaac-Humanoid-Direct-v0"
     seed: int = 301
@@ -47,6 +50,58 @@ def max_iterations(cfg: IsaacLabPPOConfig) -> int:
 
 def expected_env_steps(cfg: IsaacLabPPOConfig) -> int:
     return max_iterations(cfg) * cfg.num_envs * cfg.num_steps_per_env
+
+
+def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
+    return {
+        "baseline_name": cfg.baseline_name,
+        "simulator_backend": cfg.simulator_backend,
+        "task": cfg.task,
+        "reward_version": cfg.reward_version,
+        "source": "Isaac Lab official direct humanoid task",
+        "reference_url": "https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html",
+        "comparison_note": (
+            "This is a separate Isaac Lab baseline. Do not compare reward values directly "
+            "against Gymnasium/MuJoCo Humanoid-v5."
+        ),
+        "simulator": {
+            "dt": 1.0 / 120.0,
+            "decimation": 2,
+            "control_dt": 2.0 / 120.0,
+            "episode_length_s": 15.0,
+            "default_num_envs": cfg.num_envs,
+            "terrain": "plane",
+            "static_friction": 1.0,
+            "dynamic_friction": 1.0,
+            "restitution": 0.0,
+            "action_scale": 1.0,
+            "action_space": 21,
+            "observation_space": 75,
+            "termination_height": 0.8,
+        },
+        "reward": {
+            "progress_reward": "change in negative distance-to-target potential",
+            "alive_reward_scale": 2.0,
+            "heading_weight": 0.5,
+            "heading_full_reward_threshold": 0.8,
+            "up_weight": 0.1,
+            "up_reward_threshold": 0.93,
+            "actions_cost_scale": 0.01,
+            "energy_cost_scale": 0.05,
+            "dof_vel_scale": 0.1,
+            "dof_at_limit_cost": "subtract count of joints with scaled position > 0.98",
+            "death_cost": -1.0,
+        },
+        "training": {
+            "algorithm": "RSL-RL PPO",
+            "num_envs": cfg.num_envs,
+            "num_steps_per_env": cfg.num_steps_per_env,
+            "max_iterations": max_iterations(cfg),
+            "configured_total_timesteps": cfg.total_timesteps,
+            "expected_env_steps": expected_env_steps(cfg),
+            "device": cfg.device,
+        },
+    }
 
 
 def train_command(cfg: IsaacLabPPOConfig) -> list[str]:
@@ -103,6 +158,7 @@ def run_training(cfg: IsaacLabPPOConfig, dry_run: bool = False) -> dict[str, Any
     manifest = {
         "task": cfg.task,
         "algorithm": "isaac_rsl_rl_ppo",
+        "baseline_spec": baseline_spec(cfg),
         "seed": cfg.seed,
         "num_envs": cfg.num_envs,
         "num_steps_per_env": cfg.num_steps_per_env,

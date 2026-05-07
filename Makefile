@@ -5,7 +5,7 @@ VIDEO_CHECKPOINT ?= outputs/fair_ppo_baseline/checkpoints/final.pt
 VIDEO_OUT ?= outputs/videos/humanoid_policy.mp4
 VIDEO_MAX_STEPS ?= 1000
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline eval single-eval curves video
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-baseline-spec eval single-eval curves video
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -22,6 +22,9 @@ sac-baseline:
 
 isaac-ppo-baseline:
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_baseline.yaml
+
+isaac-baseline-spec:
+	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_baseline.yaml --out-dir outputs/isaac_ppo_baseline
 
 eval: single-eval
 

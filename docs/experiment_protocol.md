@@ -74,9 +74,28 @@ Include at least:
 The repo includes a separate single-agent Isaac Lab PPO baseline:
 
 ```bash
+make isaac-baseline-spec
 make isaac-ppo-baseline
 ```
 
 Treat this as a simulator-backend extension. It uses
 `Isaac-Humanoid-Direct-v0` and the Isaac Lab RSL-RL PPO runner, so its scores
 should be reported separately from Gymnasium/MuJoCo `Humanoid-v5`.
+
+Report the Isaac baseline as:
+
+```text
+isaac_v0_official_humanoid_direct
+```
+
+This baseline keeps the official Isaac Lab direct humanoid simulator/reward:
+
+- `dt = 1 / 120`
+- control decimation `2`
+- 15 second episodes
+- plane terrain with static/dynamic friction `1.0`
+- death when torso height is below `0.8`
+- reward = progress + alive + heading + uprightness - action cost - energy cost
+  - joint-limit cost, with death cost on termination
+
+Reference: <https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html>
