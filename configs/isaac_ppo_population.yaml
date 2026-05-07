@@ -1,0 +1,24 @@
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-Direct-v0
+seed: 401
+num_train_agents: 3
+num_average_agents: 3
+total_timesteps: 15000000
+budget_mode: aggregate
+output_dir: outputs/isaac_ppo_population
+experiment_name: humanoid_direct_fair_ppo_population
+run_name_prefix: agent
+agent:
+  num_envs: 4096
+  total_timesteps: 15000000
+  num_steps_per_env: 32
+  max_iterations:
+  save_interval: 10
+  output_dir: outputs/isaac_ppo_population
+  device: cuda:0
+  headless: true
+  video: false
+  video_length: 200
+  video_interval: 2000
+  hydra_overrides: []
+

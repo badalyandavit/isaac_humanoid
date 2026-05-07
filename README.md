@@ -29,12 +29,18 @@ configs/
   fair_sac_baseline.yaml
   fair_sac_smoke.yaml
   fair_sac_population.yaml
+  isaac_ppo_baseline.yaml
+  isaac_ppo_population.yaml
   population_average_parameters.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
   train_ppo_population.py
   train_sac_population.py
+  train_isaac_ppo_baseline.py
+  train_isaac_ppo_population.py
+  evaluate_isaac_fair.py
+  evaluate_isaac_ppo_average.py
   train_average_parameters.py
   evaluate_fair.py
   record_video.py
@@ -42,6 +48,7 @@ src/humanoid_rl/
   averaging.py
   config.py
   envs.py
+  isaaclab.py
   models.py
   ppo.py
   replay.py
@@ -61,6 +68,62 @@ bash runpod/setup_runpod.sh
 
 The setup script preserves the Torch version already installed in the RunPod
 image by default.
+
+## Optional Isaac Lab PPO
+
+The repo also includes an Isaac Lab path for faster GPU-vectorized humanoid PPO
+experiments. This is separate from the Gymnasium/MuJoCo `Humanoid-v5` path.
+
+It uses Isaac Lab's official `Isaac-Humanoid-Direct-v0` task and RSL-RL PPO
+runner instead of reimplementing the simulator task locally. The local code
+orchestrates:
+
+- single Isaac PPO baseline training
+- independent Isaac PPO population training
+- deterministic action-average evaluation across Isaac PPO checkpoints
+
+Isaac Lab usually requires an Isaac Sim compatible environment, including
+Python 3.11 for current Isaac Sim 5.x packages. The existing MuJoCo RunPod
+container may use Python 3.12, so use an Isaac Sim/Isaac Lab template or a
+Python 3.11 environment.
+
+Install or verify Isaac Lab:
+
+```bash
+bash runpod/setup_isaaclab_runpod.sh
+```
+
+Train the Isaac PPO baseline:
+
+```bash
+make isaac-ppo-baseline
+```
+
+Train three independent Isaac PPO agents under a fair aggregate budget:
+
+```bash
+make isaac-ppo-pop
+```
+
+Evaluate Isaac baseline and action averaging from the generated manifests:
+
+```bash
+make isaac-fair-eval
+```
+
+For a manual one-off action-average evaluation, pass checkpoint paths directly:
+
+```bash
+make isaac-ppo-eval \
+  ISAAC_EVAL_CHECKPOINTS="<agent0_checkpoint.pt> <agent1_checkpoint.pt> <agent2_checkpoint.pt>"
+```
+
+Checkpoint paths are recorded in:
+
+```text
+outputs/isaac_ppo_baseline/manifest.json
+outputs/isaac_ppo_population/manifest.json
+```
 
 ## Smoke Test
 

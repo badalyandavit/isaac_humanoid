@@ -57,3 +57,32 @@ Report:
 | Single SAC | SAC | 1 | fixed | | | | |
 | PPO action average | PPO | 2,3 | fixed | | | | |
 | SAC action average | SAC | 2,3 | fixed | | | | |
+
+## Optional Isaac Lab Extension
+
+The Isaac Lab extension uses `Isaac-Humanoid-Direct-v0` with the official
+RSL-RL PPO runner. Treat these results as a simulator-backend extension, not as
+directly comparable Gymnasium/MuJoCo `Humanoid-v5` numbers.
+
+Main commands:
+
+```bash
+make isaac-ppo-baseline
+make isaac-ppo-pop
+make isaac-fair-eval
+```
+
+Manual action-average evaluation runs through the Isaac Lab launcher:
+
+```bash
+make isaac-ppo-eval \
+  ISAAC_EVAL_CHECKPOINTS="ckpt_agent0.pt ckpt_agent1.pt ckpt_agent2.pt" \
+  ISAAC_EVAL_AGGREGATOR=mean \
+  ISAAC_EVAL_EPISODES=20
+```
+
+The local Isaac wrappers keep the same fair-budget idea:
+
+```text
+per-agent Isaac PPO steps = total_timesteps / num_train_agents
+```

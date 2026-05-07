@@ -1,0 +1,18 @@
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-Direct-v0
+seed: 301
+num_envs: 4096
+total_timesteps: 15000000
+num_steps_per_env: 32
+max_iterations:
+save_interval: 10
+experiment_name: humanoid_direct_fair_ppo
+run_name: baseline
+output_dir: outputs/isaac_ppo_baseline
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+hydra_overrides: []
+

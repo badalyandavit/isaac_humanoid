@@ -20,8 +20,10 @@ outputs/*
 !outputs/analysis/**
 !outputs/fair_eval/
 !outputs/fair_eval/**
+!outputs/isaac_fair_eval/
+!outputs/isaac_fair_eval/**
 !outputs/videos/
 !outputs/videos/*.mp4
 
 # internal docs
-todo.md 
+todo.md
