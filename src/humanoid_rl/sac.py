@@ -275,8 +275,6 @@ class SACTrainer:
             "mean_ctrl_cost": float(np.mean(ctrl_cost_values[-self.cfg.log_interval_steps :]))
             if ctrl_cost_values
             else 0.0,
-            "num_trained_agents_used": 1,
-            "aggregation_method": "none",
         }
         if returns:
             row["episodic_return_mean"] = float(np.mean(returns))
@@ -352,8 +350,6 @@ class SACTrainer:
             "action_l2_norm": float(np.mean(action_l2_values)),
             "action_smoothness": float(np.mean(action_smoothness_values)),
             "total_env_steps": self.global_step,
-            "num_trained_agents_used": 1,
-            "aggregation_method": "none",
         }
 
     def save(self, path: str | Path) -> None:

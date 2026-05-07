@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import copy
 import os
 from pathlib import Path
 import sys
@@ -32,21 +31,9 @@ def configure_rendering(mujoco_gl: str | None) -> None:
 
 
 def make_video_config(config_path: str, output_dir: Path):
-    from humanoid_rl.config import (
-        load_parameter_average_config,
-        load_ppo_config,
-        load_yaml,
-    )
+    from humanoid_rl.config import load_ppo_config
 
-    data = load_yaml(config_path)
-    if "average_every_rounds" in data:
-        cfg = load_parameter_average_config(config_path)
-        video_cfg = copy.deepcopy(cfg.worker)
-        video_cfg.env_id = cfg.env_id
-        video_cfg.seed = cfg.seed
-        video_cfg.device = cfg.device
-    else:
-        video_cfg = load_ppo_config(config_path)
+    video_cfg = load_ppo_config(config_path)
     video_cfg.num_envs = 1
     video_cfg.output_dir = str(output_dir / "video_loader")
     return video_cfg

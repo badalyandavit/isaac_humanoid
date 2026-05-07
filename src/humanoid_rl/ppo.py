@@ -249,8 +249,6 @@ class PPOTrainer:
             "wall_clock_s": wall_clock_s,
             "env_steps_per_second": (self.cfg.num_envs * self.cfg.num_steps) / max(1e-9, update_elapsed),
             "lr": self.optimizer.param_groups[0]["lr"],
-            "num_trained_agents_used": 1,
-            "aggregation_method": "none",
             **rollout_metrics,
             **metrics,
         }
@@ -350,8 +348,6 @@ class PPOTrainer:
             "action_l2_norm": float(np.mean(action_l2_values)),
             "action_smoothness": float(np.mean(action_smoothness_values)),
             "total_env_steps": self.global_step,
-            "num_trained_agents_used": 1,
-            "aggregation_method": "none",
         }
 
     def save(self, path: str | Path) -> None:

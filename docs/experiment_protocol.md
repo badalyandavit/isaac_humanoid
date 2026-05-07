@@ -1,39 +1,37 @@
 # Experiment Protocol
 
-Use the fair PPO/SAC suite as the main project experiment.
+Use the single-policy PPO/SAC suite as the project experiment.
 
 ## Methods
 
 1. Single PPO baseline
 2. Single SAC baseline
-3. PPO independent-agent population with deterministic action averaging at evaluation
-4. SAC independent-agent population with deterministic action averaging at evaluation
 
-The population methods do not average parameters or actions during training.
-They train independent agents with different seeds. Evaluation loads the first
-`K` trained agents and aggregates deterministic mean actions.
+Both agents are trained and evaluated independently on Gymnasium/MuJoCo
+`Humanoid-v5`.
 
-## Budget
+## Training
 
-Use `budget_mode: aggregate` for the main comparison:
+Run:
 
-```text
-per-agent train steps = total_timesteps / num_train_agents
+```bash
+make ppo-baseline
+make sac-baseline
 ```
 
-This keeps aggregate environment interaction comparable with the single-agent
-baselines.
+The main PPO config currently uses 15M environment steps. The SAC config is
+kept smaller by default because this implementation updates almost every
+environment step and is much slower on Humanoid.
 
 ## Evaluation
 
 Run:
 
 ```bash
-python3 scripts/evaluate_fair.py \
-  --num-average-agents 2,3 \
-  --aggregators mean,median,trimmed_mean \
+python3 scripts/evaluate_single.py \
   --episodes 20 \
-  --video-episodes 1
+  --video-episodes 1 \
+  --out-dir outputs/single_eval
 ```
 
 Report:
@@ -46,43 +44,10 @@ Report:
 - action L2 norm
 - action smoothness
 - total environment steps
-- number of agents used
-- aggregation method
 
 ## Main Table
 
-| Method | Algorithm | K | Aggregate env steps | Mean return | Median return | 25% return | Fall rate |
-|---|---|---:|---:|---:|---:|---:|---:|
-| Single PPO | PPO | 1 | fixed | | | | |
-| Single SAC | SAC | 1 | fixed | | | | |
-| PPO action average | PPO | 2,3 | fixed | | | | |
-| SAC action average | SAC | 2,3 | fixed | | | | |
-
-## Optional Isaac Lab Extension
-
-The Isaac Lab extension uses `Isaac-Humanoid-Direct-v0` with the official
-RSL-RL PPO runner. Treat these results as a simulator-backend extension, not as
-directly comparable Gymnasium/MuJoCo `Humanoid-v5` numbers.
-
-Main commands:
-
-```bash
-make isaac-ppo-baseline
-make isaac-ppo-pop
-make isaac-fair-eval
-```
-
-Manual action-average evaluation runs through the Isaac Lab launcher:
-
-```bash
-make isaac-ppo-eval \
-  ISAAC_EVAL_CHECKPOINTS="ckpt_agent0.pt ckpt_agent1.pt ckpt_agent2.pt" \
-  ISAAC_EVAL_AGGREGATOR=mean \
-  ISAAC_EVAL_EPISODES=20
-```
-
-The local Isaac wrappers keep the same fair-budget idea:
-
-```text
-per-agent Isaac PPO steps = total_timesteps / num_train_agents
-```
+| Method | Algorithm | Env steps | Mean return | Median return | 25% return | Fall rate |
+|---|---|---:|---:|---:|---:|---:|
+| Single PPO | PPO | fixed | | | | |
+| Single SAC | SAC | fixed | | | | |
