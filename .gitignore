@@ -22,3 +22,6 @@ outputs/*
 !outputs/fair_eval/**
 !outputs/videos/
 !outputs/videos/*.mp4
+
+# internal docs
+todo.md 
