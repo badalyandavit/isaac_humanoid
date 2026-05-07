@@ -45,6 +45,23 @@ Report:
 - action smoothness
 - total environment steps
 
+## Learning Curves
+
+Generate learning-curve figures after or during training:
+
+```bash
+make curves
+```
+
+Include at least:
+
+- episodic return versus environment steps
+- episode length / alive duration versus environment steps
+- fall rate versus environment steps when available
+- action L2 norm and action smoothness
+- environment steps per second
+- PPO/SAC optimization metrics
+
 ## Main Table
 
 | Method | Algorithm | Env steps | Mean return | Median return | 25% return | Fall rate |

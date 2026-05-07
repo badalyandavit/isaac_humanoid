@@ -16,6 +16,8 @@ old/
 outputs/*
 !outputs/single_eval/
 !outputs/single_eval/**
+!outputs/learning_curves/
+!outputs/learning_curves/**
 !outputs/videos/
 !outputs/videos/*.mp4
 

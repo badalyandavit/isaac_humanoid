@@ -23,6 +23,7 @@ if [[ "${KEEP_RUNPOD_TORCH:-1}" == "1" ]]; then
     "numpy>=1.24" \
     "PyYAML>=6.0" \
     "pandas>=2.0" \
+    "matplotlib>=3.8" \
     "tensorboard>=2.14" \
     "tqdm>=4.66" \
     "imageio>=2.34" \

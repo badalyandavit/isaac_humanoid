@@ -255,6 +255,7 @@ class PPOTrainer:
         if returns:
             row["episodic_return_mean"] = float(np.mean(returns))
             row["episodic_length_mean"] = float(np.mean(lengths))
+            row["fall_rate"] = float(np.mean(np.asarray(lengths) < 999.0))
             self.writer.add_scalar("charts/episodic_return", row["episodic_return_mean"], self.global_step)
             self.writer.add_scalar("charts/episodic_length", row["episodic_length_mean"], self.global_step)
         for key, value in row.items():

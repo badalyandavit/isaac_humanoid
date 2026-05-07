@@ -25,6 +25,7 @@ scripts/
   train_sac_baseline.py
   train_isaac_ppo_baseline.py
   evaluate_single.py
+  plot_learning_curves.py
   record_video.py
 src/humanoid_rl/
   config.py
@@ -134,6 +135,36 @@ Evaluation is deterministic:
 
 - PPO uses the Gaussian mean action.
 - SAC uses the actor mean action after tanh squashing.
+
+## Learning Curves
+
+Generate report figures from the PPO/SAC training CSV logs:
+
+```bash
+make curves
+```
+
+Equivalent command:
+
+```bash
+python3 scripts/plot_learning_curves.py --out-dir outputs/learning_curves
+```
+
+Outputs:
+
+```text
+outputs/learning_curves/
+  learning_curve_return.png
+  learning_curve_length.png
+  learning_curve_fall_rate.png
+  learning_curve_actions.png
+  learning_curve_throughput.png
+  learning_curve_optimizer.png
+  report.md
+```
+
+The script can be rerun while training is partially complete. It skips missing
+logs and refreshes the figures from the latest CSV rows.
 
 ## Video
 
