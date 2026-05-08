@@ -12,11 +12,27 @@ from humanoid_rl.config import _merge_dict_into_dataclass, load_yaml
 from humanoid_rl.utils import ensure_dir, write_json
 
 
+ISAAC_HUMANOID_REWARD_DEFAULTS: dict[str, float] = {
+    "heading_weight": 0.5,
+    "up_weight": 0.1,
+    "energy_cost_scale": 0.05,
+    "actions_cost_scale": 0.01,
+    "alive_reward_scale": 2.0,
+    "dof_vel_scale": 0.1,
+    "death_cost": -1.0,
+    "termination_height": 0.8,
+    "angular_velocity_scale": 0.25,
+    "contact_force_scale": 0.01,
+}
+
+
 @dataclass
 class IsaacLabPPOConfig:
     baseline_name: str = "isaac_v0_official_humanoid_direct"
     simulator_backend: str = "Isaac Lab"
     reward_version: str = "isaac_v0_official"
+    loss_version: str = "isaac_rsl_rl_ppo_default"
+    reward_design_goal: str = "Official Isaac Lab direct humanoid reward."
     isaaclab_dir: str = "/workspace/IsaacLab"
     task: str = "Isaac-Humanoid-Direct-v0"
     seed: int = 301
@@ -33,6 +49,17 @@ class IsaacLabPPOConfig:
     video: bool = False
     video_length: int = 200
     video_interval: int = 2000
+    heading_weight: float = ISAAC_HUMANOID_REWARD_DEFAULTS["heading_weight"]
+    up_weight: float = ISAAC_HUMANOID_REWARD_DEFAULTS["up_weight"]
+    energy_cost_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["energy_cost_scale"]
+    actions_cost_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["actions_cost_scale"]
+    alive_reward_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["alive_reward_scale"]
+    dof_vel_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["dof_vel_scale"]
+    death_cost: float = ISAAC_HUMANOID_REWARD_DEFAULTS["death_cost"]
+    termination_height: float = ISAAC_HUMANOID_REWARD_DEFAULTS["termination_height"]
+    angular_velocity_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["angular_velocity_scale"]
+    contact_force_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["contact_force_scale"]
+    reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
 
@@ -52,12 +79,33 @@ def expected_env_steps(cfg: IsaacLabPPOConfig) -> int:
     return max_iterations(cfg) * cfg.num_envs * cfg.num_steps_per_env
 
 
+def reward_parameters(cfg: IsaacLabPPOConfig) -> dict[str, float]:
+    return {key: float(getattr(cfg, key)) for key in ISAAC_HUMANOID_REWARD_DEFAULTS}
+
+
+def reward_parameter_changes(cfg: IsaacLabPPOConfig) -> dict[str, dict[str, float]]:
+    changes: dict[str, dict[str, float]] = {}
+    for key, official_value in ISAAC_HUMANOID_REWARD_DEFAULTS.items():
+        configured_value = float(getattr(cfg, key))
+        if configured_value != official_value:
+            changes[key] = {
+                "official_v0": official_value,
+                "configured": configured_value,
+            }
+    return changes
+
+
+def reward_hydra_overrides(cfg: IsaacLabPPOConfig) -> list[str]:
+    return [f"env.{key}={change['configured']}" for key, change in reward_parameter_changes(cfg).items()]
+
+
 def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
     return {
         "baseline_name": cfg.baseline_name,
         "simulator_backend": cfg.simulator_backend,
         "task": cfg.task,
         "reward_version": cfg.reward_version,
+        "loss_version": cfg.loss_version,
         "source": "Isaac Lab official direct humanoid task",
         "reference_url": "https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html",
         "comparison_note": (
@@ -77,23 +125,33 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
             "action_scale": 1.0,
             "action_space": 21,
             "observation_space": 75,
-            "termination_height": 0.8,
+            "termination_height": cfg.termination_height,
         },
         "reward": {
+            "design_goal": cfg.reward_design_goal,
             "progress_reward": "change in negative distance-to-target potential",
-            "alive_reward_scale": 2.0,
-            "heading_weight": 0.5,
+            "alive_reward_scale": cfg.alive_reward_scale,
+            "heading_weight": cfg.heading_weight,
             "heading_full_reward_threshold": 0.8,
-            "up_weight": 0.1,
+            "up_weight": cfg.up_weight,
             "up_reward_threshold": 0.93,
-            "actions_cost_scale": 0.01,
-            "energy_cost_scale": 0.05,
-            "dof_vel_scale": 0.1,
+            "actions_cost_scale": cfg.actions_cost_scale,
+            "energy_cost_scale": cfg.energy_cost_scale,
+            "dof_vel_scale": cfg.dof_vel_scale,
             "dof_at_limit_cost": "subtract count of joints with scaled position > 0.98",
-            "death_cost": -1.0,
+            "death_cost": cfg.death_cost,
+            "angular_velocity_scale": cfg.angular_velocity_scale,
+            "contact_force_scale": cfg.contact_force_scale,
+            "official_v0_parameters": ISAAC_HUMANOID_REWARD_DEFAULTS,
+            "configured_parameters": reward_parameters(cfg),
+            "parameter_changes_from_v0": reward_parameter_changes(cfg),
+            "auto_hydra_overrides": reward_hydra_overrides(cfg),
+            "notes": cfg.reward_notes,
         },
         "training": {
             "algorithm": "RSL-RL PPO",
+            "loss_version": cfg.loss_version,
+            "loss_note": "V1 changes Isaac reward coefficients only; PPO loss is unchanged.",
             "num_envs": cfg.num_envs,
             "num_steps_per_env": cfg.num_steps_per_env,
             "max_iterations": max_iterations(cfg),
@@ -139,6 +197,7 @@ def train_command(cfg: IsaacLabPPOConfig) -> list[str]:
                 str(cfg.video_interval),
             ]
         )
+    command.extend(reward_hydra_overrides(cfg))
     command.extend(cfg.hydra_overrides)
     return command
 
@@ -156,7 +215,10 @@ def run_training(cfg: IsaacLabPPOConfig, dry_run: bool = False) -> dict[str, Any
     run_dir = find_new_run_dir(log_root, before, cfg.run_name) if not dry_run else None
     checkpoint = latest_checkpoint(run_dir) if run_dir is not None else None
     manifest = {
+        "baseline_name": cfg.baseline_name,
         "task": cfg.task,
+        "reward_version": cfg.reward_version,
+        "loss_version": cfg.loss_version,
         "algorithm": "isaac_rsl_rl_ppo",
         "baseline_spec": baseline_spec(cfg),
         "seed": cfg.seed,

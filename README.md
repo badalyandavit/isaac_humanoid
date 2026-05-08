@@ -20,6 +20,7 @@ configs/
   fair_sac_baseline.yaml
   fair_sac_smoke.yaml
   isaac_ppo_baseline.yaml
+  isaac_ppo_v1.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -81,12 +82,12 @@ outputs/fair_sac_baseline/
 
 ## Optional Isaac PPO
 
-There is also a single-agent Isaac Lab PPO baseline. This is not a population
-method and is not directly comparable to Gymnasium/MuJoCo `Humanoid-v5`,
-because it uses Isaac Lab's `Isaac-Humanoid-Direct-v0` task and RSL-RL PPO
+There are also single-agent Isaac Lab PPO variants. These are not population
+methods and are not directly comparable to Gymnasium/MuJoCo `Humanoid-v5`,
+because they use Isaac Lab's `Isaac-Humanoid-Direct-v0` task and RSL-RL PPO
 runner.
 
-The Isaac baseline is named:
+The Isaac V0 baseline is named:
 
 ```text
 isaac_v0_official_humanoid_direct
@@ -106,29 +107,56 @@ It uses the official Isaac Lab direct humanoid simulator and reward:
 
 Reference: <https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html>
 
+The Isaac V1 shaped-reward variant is named:
+
+```text
+isaac_v1_upright_controlled_humanoid_direct
+```
+
+V1 keeps the same Isaac simulator, robot, physics timestep, action space,
+RSL-RL PPO runner, and PPO loss as V0. It changes reward coefficients only:
+
+- heading reward weight `0.5 -> 1.0`
+- upright reward weight `0.1 -> 0.5`
+- alive reward scale `2.0 -> 1.0`
+- action cost scale `0.01 -> 0.02`
+- energy cost scale `0.05 -> 0.08`
+- death cost `-1.0 -> -5.0`
+- termination torso height `0.8 -> 0.95`
+
+The intent is to reduce the hunched/collapsed walking pattern seen in V0 by
+rewarding upright forward alignment more strongly and penalizing thrashy or
+collapsed locomotion earlier.
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
 bash runpod/setup_isaaclab_runpod.sh
 make isaac-ppo-baseline
+make isaac-ppo-v1
 ```
 
-The wrapper writes a manifest to:
+The wrappers write manifests to:
 
 ```text
 outputs/isaac_ppo_baseline/manifest.json
+outputs/isaac_ppo_v1/manifest.json
 ```
 
 Write the Isaac simulator/reward spec without launching Isaac:
 
 ```bash
 make isaac-baseline-spec
+make isaac-v1-spec
 ```
 
 Outputs:
 
 ```text
 outputs/isaac_ppo_baseline/
+  baseline_spec.json
+  baseline_spec.md
+outputs/isaac_ppo_v1/
   baseline_spec.json
   baseline_spec.md
 ```

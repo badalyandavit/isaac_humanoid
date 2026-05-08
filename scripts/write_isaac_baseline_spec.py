@@ -46,7 +46,7 @@ def main() -> None:
     out_dir = ensure_dir(args.out_dir)
     write_json(out_dir / "baseline_spec.json", spec)
     (out_dir / "baseline_spec.md").write_text(markdown(spec), encoding="utf-8")
-    print(f"Wrote Isaac baseline spec to {out_dir}")
+    print(f"Wrote Isaac baseline spec for {spec['baseline_name']} to {out_dir}")
 
 
 if __name__ == "__main__":
