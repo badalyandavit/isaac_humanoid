@@ -78,6 +78,8 @@ make isaac-baseline-spec
 make isaac-ppo-baseline
 make isaac-v1-spec
 make isaac-ppo-v1
+make isaac-video-v0
+make isaac-video-v1
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -122,3 +124,14 @@ V0:
 
 When reporting, keep V0 and V1 as separate rows because V1 is a shaped-reward
 ablation, not the official Isaac reward.
+
+The Isaac video targets use the checkpoint saved in each training manifest and
+copy the recorded MP4s to:
+
+```text
+outputs/videos/isaac_v0_policy.mp4
+outputs/videos/isaac_v1_policy.mp4
+```
+
+These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must
+be available in the Isaac environment.

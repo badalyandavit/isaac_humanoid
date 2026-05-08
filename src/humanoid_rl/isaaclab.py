@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import math
 import re
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -202,6 +204,37 @@ def train_command(cfg: IsaacLabPPOConfig) -> list[str]:
     return command
 
 
+def play_command(
+    cfg: IsaacLabPPOConfig,
+    checkpoint: str | Path,
+    num_envs: int = 1,
+    video_length: int | None = None,
+    headless: bool = True,
+) -> list[str]:
+    isaaclab_sh = Path(cfg.isaaclab_dir) / "isaaclab.sh"
+    command = [
+        str(isaaclab_sh),
+        "-p",
+        "scripts/reinforcement_learning/rsl_rl/play.py",
+        "--task",
+        cfg.task,
+        "--num_envs",
+        str(num_envs),
+        "--checkpoint",
+        str(checkpoint),
+        "--device",
+        cfg.device,
+        "--video",
+        "--video_length",
+        str(video_length if video_length is not None else cfg.video_length),
+    ]
+    if headless:
+        command.append("--headless")
+    command.extend(reward_hydra_overrides(cfg))
+    command.extend(cfg.hydra_overrides)
+    return command
+
+
 def run_training(cfg: IsaacLabPPOConfig, dry_run: bool = False) -> dict[str, Any]:
     output_dir = ensure_dir(cfg.output_dir)
     log_root = Path(cfg.isaaclab_dir) / "logs" / "rsl_rl" / cfg.experiment_name
@@ -235,6 +268,60 @@ def run_training(cfg: IsaacLabPPOConfig, dry_run: bool = False) -> dict[str, Any
         "command": command,
     }
     write_json(output_dir / "manifest.json", manifest)
+    return manifest
+
+
+def run_video(
+    cfg: IsaacLabPPOConfig,
+    checkpoint: str | Path | None = None,
+    out: str | Path | None = None,
+    num_envs: int = 1,
+    video_length: int | None = None,
+    headless: bool = True,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    output_dir = ensure_dir(cfg.output_dir)
+    checkpoint_path = resolve_isaac_checkpoint(cfg, checkpoint)
+    command = play_command(
+        cfg,
+        checkpoint_path,
+        num_envs=num_envs,
+        video_length=video_length,
+        headless=headless,
+    )
+    source_video: Path | None = None
+    copied_video: Path | None = None
+    started_at = time.time()
+    if not dry_run:
+        validate_isaaclab_dir(cfg.isaaclab_dir)
+        checkpoint_for_fs = Path(checkpoint_path)
+        if not checkpoint_for_fs.exists():
+            raise FileNotFoundError(f"Isaac checkpoint not found: {checkpoint_for_fs}")
+        video_dir = checkpoint_for_fs.parent / "videos" / "play"
+        before = existing_video_files(video_dir)
+        subprocess.run(command, cwd=cfg.isaaclab_dir, check=True)
+        source_video = latest_video(video_dir, before)
+        if source_video is None:
+            raise FileNotFoundError(f"No Isaac video was written under: {video_dir}")
+        if out is not None:
+            copied_video = Path(out)
+            ensure_dir(copied_video.parent)
+            shutil.copy2(source_video, copied_video)
+    elapsed = time.time() - started_at
+    manifest = {
+        "baseline_name": cfg.baseline_name,
+        "task": cfg.task,
+        "reward_version": cfg.reward_version,
+        "loss_version": cfg.loss_version,
+        "checkpoint": str(checkpoint_path),
+        "source_video": str(source_video) if source_video else None,
+        "copied_video": str(copied_video) if copied_video else str(out) if dry_run and out else None,
+        "num_envs": num_envs,
+        "video_length": video_length if video_length is not None else cfg.video_length,
+        "elapsed_seconds": elapsed,
+        "command": command,
+    }
+    write_json(output_dir / "video_manifest.json", manifest)
     return manifest
 
 
@@ -277,6 +364,42 @@ def latest_checkpoint(run_dir: Path | None) -> Path | None:
     if not checkpoints:
         return None
     return checkpoints[-1]
+
+
+def resolve_isaac_checkpoint(cfg: IsaacLabPPOConfig, checkpoint: str | Path | None = None) -> Path:
+    if checkpoint is not None:
+        return Path(checkpoint)
+    manifest_path = Path(cfg.output_dir) / "manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(
+            f"No Isaac manifest found at {manifest_path}. Run the training target first or pass --checkpoint."
+        )
+    with manifest_path.open("r", encoding="utf-8") as f:
+        manifest = json.load(f)
+    manifest_checkpoint = manifest.get("checkpoint")
+    if not manifest_checkpoint:
+        raise FileNotFoundError(
+            f"No checkpoint is recorded in {manifest_path}. Run training first or pass --checkpoint."
+        )
+    return Path(manifest_checkpoint)
+
+
+def existing_video_files(video_dir: Path) -> set[Path]:
+    if not video_dir.exists():
+        return set()
+    return set(video_dir.rglob("*.mp4"))
+
+
+def latest_video(video_dir: Path, before: set[Path] | None = None) -> Path | None:
+    before = before or set()
+    if not video_dir.exists():
+        return None
+    candidates = [p for p in video_dir.rglob("*.mp4") if p not in before]
+    if not candidates:
+        candidates = list(video_dir.rglob("*.mp4"))
+    if not candidates:
+        return None
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
 def checkpoint_sort_key(path: Path) -> tuple[int, float]:

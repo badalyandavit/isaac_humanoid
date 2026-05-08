@@ -26,6 +26,7 @@ scripts/
   train_sac_baseline.py
   train_isaac_ppo_baseline.py
   write_isaac_baseline_spec.py
+  record_isaac_video.py
   evaluate_single.py
   plot_learning_curves.py
   record_video.py
@@ -141,6 +142,30 @@ The wrappers write manifests to:
 ```text
 outputs/isaac_ppo_baseline/manifest.json
 outputs/isaac_ppo_v1/manifest.json
+```
+
+Record Isaac videos after training:
+
+```bash
+make isaac-video-v0
+make isaac-video-v1
+```
+
+This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
+the Isaac environment.
+
+Outputs:
+
+```text
+outputs/videos/isaac_v0_policy.mp4
+outputs/videos/isaac_v1_policy.mp4
+```
+
+The video script uses the checkpoint recorded in each Isaac training manifest
+by default. To point at a specific checkpoint:
+
+```bash
+make isaac-video-v1 ISAAC_VIDEO_CHECKPOINT=/workspace/IsaacLab/logs/rsl_rl/.../model_115.pt
 ```
 
 Write the Isaac simulator/reward spec without launching Isaac:
