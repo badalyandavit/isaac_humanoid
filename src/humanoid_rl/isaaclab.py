@@ -27,6 +27,20 @@ ISAAC_HUMANOID_REWARD_DEFAULTS: dict[str, float] = {
     "contact_force_scale": 0.01,
 }
 
+ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
+    "height_target": 1.35,
+    "height_bonus_scale": 4.0,
+    "low_height_threshold": 1.15,
+    "low_height_penalty_scale": 6.0,
+    "torso_low_height": 1.10,
+    "torso_low_penalty_scale": 4.0,
+    "arm_low_height": 0.65,
+    "arm_low_penalty_scale": 4.0,
+    "leg_pose_penalty_scale": 0.6,
+    "arm_pose_penalty_scale": 0.8,
+    "action_rate_penalty_scale": 0.04,
+}
+
 
 @dataclass
 class IsaacLabPPOConfig:
@@ -35,6 +49,7 @@ class IsaacLabPPOConfig:
     reward_version: str = "isaac_v0_official"
     loss_version: str = "isaac_rsl_rl_ppo_default"
     reward_design_goal: str = "Official Isaac Lab direct humanoid reward."
+    custom_isaac_task: bool = False
     isaaclab_dir: str = "/workspace/IsaacLab"
     task: str = "Isaac-Humanoid-Direct-v0"
     seed: int = 301
@@ -61,6 +76,17 @@ class IsaacLabPPOConfig:
     termination_height: float = ISAAC_HUMANOID_REWARD_DEFAULTS["termination_height"]
     angular_velocity_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["angular_velocity_scale"]
     contact_force_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["contact_force_scale"]
+    height_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["height_target"]
+    height_bonus_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["height_bonus_scale"]
+    low_height_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_height_threshold"]
+    low_height_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_height_penalty_scale"]
+    torso_low_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["torso_low_height"]
+    torso_low_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["torso_low_penalty_scale"]
+    arm_low_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_low_height"]
+    arm_low_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_low_penalty_scale"]
+    leg_pose_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["leg_pose_penalty_scale"]
+    arm_pose_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_pose_penalty_scale"]
+    action_rate_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["action_rate_penalty_scale"]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -98,7 +124,14 @@ def reward_parameter_changes(cfg: IsaacLabPPOConfig) -> dict[str, dict[str, floa
 
 
 def reward_hydra_overrides(cfg: IsaacLabPPOConfig) -> list[str]:
-    return [f"env.{key}={change['configured']}" for key, change in reward_parameter_changes(cfg).items()]
+    overrides = [f"env.{key}={change['configured']}" for key, change in reward_parameter_changes(cfg).items()]
+    if cfg.custom_isaac_task:
+        overrides.extend(f"env.{key}={getattr(cfg, key)}" for key in ISAAC_HUMANOID_V4_REWARD_DEFAULTS)
+    return overrides
+
+
+def v4_reward_parameters(cfg: IsaacLabPPOConfig) -> dict[str, float]:
+    return {key: float(getattr(cfg, key)) for key in ISAAC_HUMANOID_V4_REWARD_DEFAULTS}
 
 
 def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
@@ -131,6 +164,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
         },
         "reward": {
             "design_goal": cfg.reward_design_goal,
+            "custom_isaac_task": cfg.custom_isaac_task,
             "progress_reward": "change in negative distance-to-target potential",
             "alive_reward_scale": cfg.alive_reward_scale,
             "heading_weight": cfg.heading_weight,
@@ -146,8 +180,22 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
             "contact_force_scale": cfg.contact_force_scale,
             "official_v0_parameters": ISAAC_HUMANOID_REWARD_DEFAULTS,
             "configured_parameters": reward_parameters(cfg),
+            "custom_v4_parameters": v4_reward_parameters(cfg) if cfg.custom_isaac_task else {},
             "parameter_changes_from_v0": reward_parameter_changes(cfg),
             "auto_hydra_overrides": reward_hydra_overrides(cfg),
+            "custom_v4_reward_terms": (
+                [
+                    "height bonus for maintaining torso/root height near target",
+                    "low torso/root height penalty",
+                    "low torso/pelvis/head body penalty",
+                    "low arm/hand body penalty as a proxy for arm-supported crawling",
+                    "leg joint pose penalty to discourage deep crouch",
+                    "arm joint pose penalty to discourage arm-driven locomotion",
+                    "action-rate penalty for smoother motion",
+                ]
+                if cfg.custom_isaac_task
+                else []
+            ),
             "notes": cfg.reward_notes,
         },
         "training": {

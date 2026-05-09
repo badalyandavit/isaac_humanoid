@@ -83,15 +83,19 @@ make isaac-v2-spec
 make isaac-ppo-v2
 make isaac-v3-spec
 make isaac-ppo-v3
+make isaac-v4-spec
+make isaac-ppo-v4
 make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
 make isaac-video-v2
 make isaac-video-v3
+make isaac-video-v4
 make isaac-video-track-v0
 make isaac-video-track-v1
 make isaac-video-track-v2
 make isaac-video-track-v3
+make isaac-video-track-v4
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -184,6 +188,31 @@ upright-gait ablation motivated by V2's high-return but low crawling gait:
 Report V3 separately because it intentionally trades raw reward for gait
 quality.
 
+Report the Isaac V4 custom-reward variant as:
+
+```text
+isaac_v4_morphology_reward_humanoid_direct
+```
+
+V4 registers and trains a new Isaac task id:
+
+```text
+Isaac-Humanoid-V4-Direct-v0
+```
+
+V4 keeps the Isaac simulator and RSL-RL PPO runner, but unlike V1-V3 it changes
+the reward function itself. The custom task adds morphology and gait-quality
+terms:
+
+- root/torso height bonus and low-height penalty
+- torso/pelvis/head low-body penalty
+- arm/hand low-body penalty to discourage arm-supported crawling
+- leg and arm joint pose penalties
+- action-rate penalty
+
+Report V4 as a custom-reward ablation. Its return can be lower than V2/V3
+because it penalizes the high-return spider/crawling behavior.
+
 The Isaac video targets use the checkpoint saved in each training manifest and
 copy the recorded MP4s to:
 
@@ -192,10 +221,12 @@ outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
+outputs/videos/isaac_v4_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
 outputs/videos/isaac_v3_policy_tracked.mp4
+outputs/videos/isaac_v4_policy_tracked.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must

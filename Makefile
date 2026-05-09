@@ -11,7 +11,7 @@ ISAAC_VIDEO_OUT ?= outputs/videos/isaac_policy.mp4
 ISAAC_VIDEO_MAX_STEPS ?= 500
 ISAAC_VIDEO_NUM_ENVS ?= 1
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v2 isaac-ppo-v3 isaac-baseline-spec isaac-v1-spec isaac-v2-spec isaac-v3-spec eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v2 isaac-video-v3 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v2 isaac-video-track-v3
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v2 isaac-ppo-v3 isaac-ppo-v4 isaac-baseline-spec isaac-v1-spec isaac-v2-spec isaac-v3-spec isaac-v4-spec isaac-v4-install eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v2 isaac-video-v3 isaac-video-v4 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v2 isaac-video-track-v3 isaac-video-track-v4
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -38,6 +38,12 @@ isaac-ppo-v2:
 isaac-ppo-v3:
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v3.yaml
 
+isaac-v4-install:
+	$(PYTHON) scripts/install_isaac_v4_task.py --config configs/isaac_ppo_v4.yaml
+
+isaac-ppo-v4: isaac-v4-install
+	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v4.yaml
+
 isaac-baseline-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_baseline.yaml --out-dir outputs/isaac_ppo_baseline
 
@@ -49,6 +55,9 @@ isaac-v2-spec:
 
 isaac-v3-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v3.yaml --out-dir outputs/isaac_ppo_v3
+
+isaac-v4-spec:
+	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v4.yaml --out-dir outputs/isaac_ppo_v4
 
 eval: single-eval
 
@@ -79,6 +88,9 @@ isaac-video-v2:
 isaac-video-v3:
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v3.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v3_policy.mp4
 
+isaac-video-v4: isaac-v4-install
+	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v4.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v4_policy.mp4
+
 isaac-video-track:
 	$(PYTHON) scripts/record_isaac_tracking_video.py --config $(ISAAC_VIDEO_CONFIG) $(ISAAC_VIDEO_CHECKPOINT_ARG) --out $(ISAAC_VIDEO_OUT) --num-envs $(ISAAC_VIDEO_NUM_ENVS) --video-length $(ISAAC_VIDEO_MAX_STEPS)
 
@@ -93,3 +105,6 @@ isaac-video-track-v2:
 
 isaac-video-track-v3:
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v3.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v3_policy_tracked.mp4
+
+isaac-video-track-v4: isaac-v4-install
+	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v4.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v4_policy_tracked.mp4
