@@ -81,10 +81,13 @@ make isaac-v1-spec
 make isaac-ppo-v1
 make isaac-v2-spec
 make isaac-ppo-v2
+make isaac-v3-spec
+make isaac-ppo-v3
 make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
 make isaac-video-v2
+make isaac-video-v3
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -157,6 +160,26 @@ steps:
 Report V2 separately from V0/V1 because it changes both reward coefficients
 and the intended training budget.
 
+Report the Isaac V3 shaped-reward variant as:
+
+```text
+isaac_v3_tall_upright_humanoid_direct
+```
+
+V3 keeps the same Isaac simulator, PPO runner, and PPO loss. It is a stricter
+upright-gait ablation motivated by V2's high-return but low crawling gait:
+
+- heading reward weight `0.5 -> 1.0`
+- upright reward weight `0.1 -> 0.75`
+- alive reward scale `2.0 -> 1.2`
+- action cost scale `0.01 -> 0.02`
+- energy cost scale `0.05 -> 0.08`
+- death cost `-1.0 -> -4.0`
+- termination torso height `0.8 -> 1.0`
+
+Report V3 separately because it intentionally trades raw reward for gait
+quality.
+
 The Isaac video targets use the checkpoint saved in each training manifest and
 copy the recorded MP4s to:
 
@@ -164,6 +187,7 @@ copy the recorded MP4s to:
 outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
+outputs/videos/isaac_v3_policy.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must

@@ -11,7 +11,7 @@ ISAAC_VIDEO_OUT ?= outputs/videos/isaac_policy.mp4
 ISAAC_VIDEO_MAX_STEPS ?= 500
 ISAAC_VIDEO_NUM_ENVS ?= 1
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v2 isaac-baseline-spec isaac-v1-spec isaac-v2-spec eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v2
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v2 isaac-ppo-v3 isaac-baseline-spec isaac-v1-spec isaac-v2-spec isaac-v3-spec eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v2 isaac-video-v3
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -35,6 +35,9 @@ isaac-ppo-v1:
 isaac-ppo-v2:
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v2.yaml
 
+isaac-ppo-v3:
+	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v3.yaml
+
 isaac-baseline-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_baseline.yaml --out-dir outputs/isaac_ppo_baseline
 
@@ -43,6 +46,9 @@ isaac-v1-spec:
 
 isaac-v2-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v2.yaml --out-dir outputs/isaac_ppo_v2
+
+isaac-v3-spec:
+	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v3.yaml --out-dir outputs/isaac_ppo_v3
 
 eval: single-eval
 
@@ -69,3 +75,6 @@ isaac-video-v1:
 
 isaac-video-v2:
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v2.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v2_policy.mp4
+
+isaac-video-v3:
+	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v3.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v3_policy.mp4

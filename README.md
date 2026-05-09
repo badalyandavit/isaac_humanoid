@@ -22,6 +22,7 @@ configs/
   isaac_ppo_baseline.yaml
   isaac_ppo_v1.yaml
   isaac_ppo_v2.yaml
+  isaac_ppo_v3.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -151,6 +152,25 @@ a longer default training budget of `200M` environment steps:
 The intent is to keep V1's cleaner-upright goal but avoid punishing early
 falls so harshly that the policy never learns a stable gait.
 
+The Isaac V3 shaped-reward variant is named:
+
+```text
+isaac_v3_tall_upright_humanoid_direct
+```
+
+V3 keeps the same simulator and PPO runner, but targets the low crawling gait
+seen in V2:
+
+- heading reward weight `0.5 -> 1.0`
+- upright reward weight `0.1 -> 0.75`
+- alive reward scale `2.0 -> 1.2`
+- action cost scale `0.01 -> 0.02`
+- energy cost scale `0.05 -> 0.08`
+- death cost `-1.0 -> -4.0`
+- termination torso height `0.8 -> 1.0`
+
+The intent is to trade off some raw return for a taller, more human-like gait.
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
@@ -158,6 +178,7 @@ bash runpod/setup_isaaclab_runpod.sh
 make isaac-ppo-baseline
 make isaac-ppo-v1
 make isaac-ppo-v2
+make isaac-ppo-v3
 ```
 
 The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
@@ -185,6 +206,7 @@ The wrappers write manifests to:
 outputs/isaac_ppo_baseline/manifest.json
 outputs/isaac_ppo_v1/manifest.json
 outputs/isaac_ppo_v2/manifest.json
+outputs/isaac_ppo_v3/manifest.json
 ```
 
 Isaac Lab writes training TensorBoard event files under:
@@ -193,7 +215,7 @@ Isaac Lab writes training TensorBoard event files under:
 /workspace/IsaacLab/logs/rsl_rl/humanoid_direct/
 ```
 
-Export Isaac V0/V1/V2 scalar logs and learning-curve figures into this repo:
+Export Isaac V0/V1/V2/V3 scalar logs and learning-curve figures into this repo:
 
 ```bash
 make isaac-curves
@@ -216,6 +238,7 @@ Record Isaac videos after training:
 make isaac-video-v0
 make isaac-video-v1
 make isaac-video-v2
+make isaac-video-v3
 ```
 
 This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
@@ -227,6 +250,7 @@ Outputs:
 outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
+outputs/videos/isaac_v3_policy.mp4
 ```
 
 The video script uses the checkpoint recorded in each Isaac training manifest
@@ -242,6 +266,7 @@ Write the Isaac simulator/reward spec without launching Isaac:
 make isaac-baseline-spec
 make isaac-v1-spec
 make isaac-v2-spec
+make isaac-v3-spec
 ```
 
 Outputs:
@@ -254,6 +279,9 @@ outputs/isaac_ppo_v1/
   baseline_spec.json
   baseline_spec.md
 outputs/isaac_ppo_v2/
+  baseline_spec.json
+  baseline_spec.md
+outputs/isaac_ppo_v3/
   baseline_spec.json
   baseline_spec.md
 ```
