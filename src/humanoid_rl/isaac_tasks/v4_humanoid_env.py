@@ -10,8 +10,11 @@ from isaaclab_tasks.direct.humanoid.humanoid_env import HumanoidEnv, HumanoidEnv
 class HumanoidV4EnvCfg(HumanoidEnvCfg):
     height_target: float = 1.35
     height_bonus_scale: float = 4.0
+    height_tracking_penalty_scale: float = 0.0
     low_height_threshold: float = 1.15
     low_height_penalty_scale: float = 6.0
+    high_height_threshold: float = 1.60
+    high_height_penalty_scale: float = 0.0
     torso_low_height: float = 1.10
     torso_low_penalty_scale: float = 4.0
     arm_low_height: float = 0.65
@@ -19,6 +22,7 @@ class HumanoidV4EnvCfg(HumanoidEnvCfg):
     leg_pose_penalty_scale: float = 0.6
     arm_pose_penalty_scale: float = 0.8
     action_rate_penalty_scale: float = 0.04
+    vertical_velocity_penalty_scale: float = 0.0
 
 
 class HumanoidV4Env(HumanoidEnv):
@@ -52,11 +56,20 @@ class HumanoidV4Env(HumanoidEnv):
             max=1.0,
         )
         height_bonus = self.cfg.height_bonus_scale * height_progress
+        height_tracking_penalty = self.cfg.height_tracking_penalty_scale * (
+            (root_height - self.cfg.height_target) / max(1.0e-6, self.cfg.height_target)
+        ).square()
         low_height_penalty = self.cfg.low_height_penalty_scale * torch.clamp(
             (self.cfg.low_height_threshold - root_height) / 0.25,
             min=0.0,
             max=1.5,
         )
+        high_height_penalty = self.cfg.high_height_penalty_scale * torch.clamp(
+            (root_height - self.cfg.high_height_threshold) / 0.25,
+            min=0.0,
+            max=1.5,
+        )
+        vertical_velocity_penalty = self.cfg.vertical_velocity_penalty_scale * self._root_vertical_velocity(data).square()
 
         body_pos = data.body_pos_w
         body_heights = self._relative_body_heights(body_pos[..., 2])
@@ -85,12 +98,15 @@ class HumanoidV4Env(HumanoidEnv):
         total_reward = (
             base_reward
             + height_bonus
+            - height_tracking_penalty
             - low_height_penalty
+            - high_height_penalty
             - torso_low_penalty
             - arm_low_penalty
             - leg_pose_penalty
             - arm_pose_penalty
             - action_rate_penalty
+            - vertical_velocity_penalty
         )
         return total_reward
 
@@ -111,6 +127,16 @@ class HumanoidV4Env(HumanoidEnv):
         if env_origins is not None:
             return body_z - env_origins[:, 2].unsqueeze(-1)
         return body_z
+
+    def _root_vertical_velocity(self, data) -> torch.Tensor:
+        for attr in ("root_lin_vel_w", "root_link_lin_vel_w", "root_com_lin_vel_w"):
+            value = getattr(data, attr, None)
+            if value is not None:
+                return value[:, 2]
+        state = getattr(data, "root_state_w", None)
+        if state is not None and state.shape[-1] >= 10:
+            return state[:, 9]
+        return torch.zeros(self.num_envs, device=self.device)
 
     def _build_masks(self, data) -> None:
         if self._arm_body_mask is None:

@@ -85,17 +85,21 @@ make isaac-v3-spec
 make isaac-ppo-v3
 make isaac-v4-spec
 make isaac-ppo-v4
+make isaac-v5-spec
+make isaac-ppo-v5
 make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
 make isaac-video-v2
 make isaac-video-v3
 make isaac-video-v4
+make isaac-video-v5
 make isaac-video-track-v0
 make isaac-video-track-v1
 make isaac-video-track-v2
 make isaac-video-track-v3
 make isaac-video-track-v4
+make isaac-video-track-v5
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -213,6 +217,19 @@ terms:
 Report V4 as a custom-reward ablation. Its return can be lower than V2/V3
 because it penalizes the high-return spider/crawling behavior.
 
+Report the Isaac V5 custom-reward variant as:
+
+```text
+isaac_v5_anti_jump_morphology_humanoid_direct
+```
+
+V5 uses the same custom Isaac task module as V4 but removes the positive height
+bonus that produced jumping. Height becomes a bounded constraint: low-height
+penalty, high-height penalty, and vertical-velocity penalty. V5 keeps the
+arm-low and arm-pose penalties to discourage spider/crawling locomotion.
+
+Report V5 as the anti-jump follow-up to V4.
+
 The Isaac video targets use the checkpoint saved in each training manifest and
 copy the recorded MP4s to:
 
@@ -222,11 +239,13 @@ outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
 outputs/videos/isaac_v4_policy.mp4
+outputs/videos/isaac_v5_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
 outputs/videos/isaac_v3_policy_tracked.mp4
 outputs/videos/isaac_v4_policy_tracked.mp4
+outputs/videos/isaac_v5_policy_tracked.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must

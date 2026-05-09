@@ -30,8 +30,11 @@ ISAAC_HUMANOID_REWARD_DEFAULTS: dict[str, float] = {
 ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "height_target": 1.35,
     "height_bonus_scale": 4.0,
+    "height_tracking_penalty_scale": 0.0,
     "low_height_threshold": 1.15,
     "low_height_penalty_scale": 6.0,
+    "high_height_threshold": 1.60,
+    "high_height_penalty_scale": 0.0,
     "torso_low_height": 1.10,
     "torso_low_penalty_scale": 4.0,
     "arm_low_height": 0.65,
@@ -39,6 +42,7 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "leg_pose_penalty_scale": 0.6,
     "arm_pose_penalty_scale": 0.8,
     "action_rate_penalty_scale": 0.04,
+    "vertical_velocity_penalty_scale": 0.0,
 }
 
 
@@ -78,8 +82,11 @@ class IsaacLabPPOConfig:
     contact_force_scale: float = ISAAC_HUMANOID_REWARD_DEFAULTS["contact_force_scale"]
     height_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["height_target"]
     height_bonus_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["height_bonus_scale"]
+    height_tracking_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["height_tracking_penalty_scale"]
     low_height_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_height_threshold"]
     low_height_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_height_penalty_scale"]
+    high_height_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["high_height_threshold"]
+    high_height_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["high_height_penalty_scale"]
     torso_low_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["torso_low_height"]
     torso_low_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["torso_low_penalty_scale"]
     arm_low_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_low_height"]
@@ -87,6 +94,7 @@ class IsaacLabPPOConfig:
     leg_pose_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["leg_pose_penalty_scale"]
     arm_pose_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_pose_penalty_scale"]
     action_rate_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["action_rate_penalty_scale"]
+    vertical_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["vertical_velocity_penalty_scale"]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -186,12 +194,15 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
             "custom_v4_reward_terms": (
                 [
                     "height bonus for maintaining torso/root height near target",
+                    "height tracking penalty to avoid jumping above the target posture",
                     "low torso/root height penalty",
+                    "high torso/root height penalty to discourage hopping",
                     "low torso/pelvis/head body penalty",
                     "low arm/hand body penalty as a proxy for arm-supported crawling",
                     "leg joint pose penalty to discourage deep crouch",
                     "arm joint pose penalty to discourage arm-driven locomotion",
                     "action-rate penalty for smoother motion",
+                    "vertical velocity penalty to discourage bouncing",
                 ]
                 if cfg.custom_isaac_task
                 else []
