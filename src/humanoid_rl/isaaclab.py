@@ -83,6 +83,12 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "max_touchdown_air_time": 0.50,
     "max_foot_air_time": 0.45,
     "foot_air_time_penalty_scale": 0.0,
+    "foot_contact_dominance_threshold": 0.15,
+    "soft_foot_contact_switch_reward_scale": 0.0,
+    "underused_foot_contact_reward_scale": 0.0,
+    "min_stance_time": 0.16,
+    "max_stance_time": 0.50,
+    "stance_duration_penalty_scale": 0.0,
     "swing_foot_clearance_height": 0.26,
     "swing_foot_clearance_reward_scale": 0.0,
     "max_swing_foot_height": 0.34,
@@ -203,6 +209,18 @@ class IsaacLabPPOConfig:
     max_touchdown_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_touchdown_air_time"]
     max_foot_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_foot_air_time"]
     foot_air_time_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_time_penalty_scale"]
+    foot_contact_dominance_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_contact_dominance_threshold"
+    ]
+    soft_foot_contact_switch_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "soft_foot_contact_switch_reward_scale"
+    ]
+    underused_foot_contact_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "underused_foot_contact_reward_scale"
+    ]
+    min_stance_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["min_stance_time"]
+    max_stance_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_stance_time"]
+    stance_duration_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["stance_duration_penalty_scale"]
     swing_foot_clearance_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["swing_foot_clearance_height"]
     swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "swing_foot_clearance_reward_scale"
@@ -349,6 +367,8 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
                     "air-time-to-touchdown reward for real alternating steps",
                     "maximum foot-air-time penalty to discourage one-foot airborne gliding",
+                    "soft cadence reward for timed left/right foot dominance switches",
+                    "overlong stance-duration penalty and underused-foot contact reward",
                     "soft foot-contact transition reward",
                     "soft single-support and foot-height-difference rewards",
                     "swing-foot clearance and step-length rewards",
