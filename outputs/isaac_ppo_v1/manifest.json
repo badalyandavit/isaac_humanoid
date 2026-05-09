@@ -1,0 +1,169 @@
+{
+  "baseline_name": "isaac_v1_upright_controlled_humanoid_direct",
+  "task": "Isaac-Humanoid-Direct-v0",
+  "reward_version": "isaac_v1_upright_controlled",
+  "loss_version": "isaac_rsl_rl_ppo_default",
+  "algorithm": "isaac_rsl_rl_ppo",
+  "baseline_spec": {
+    "baseline_name": "isaac_v1_upright_controlled_humanoid_direct",
+    "simulator_backend": "Isaac Lab",
+    "task": "Isaac-Humanoid-Direct-v0",
+    "reward_version": "isaac_v1_upright_controlled",
+    "loss_version": "isaac_rsl_rl_ppo_default",
+    "source": "Isaac Lab official direct humanoid task",
+    "reference_url": "https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html",
+    "comparison_note": "This is a separate Isaac Lab baseline. Do not compare reward values directly against Gymnasium/MuJoCo Humanoid-v5.",
+    "simulator": {
+      "dt": 0.008333333333333333,
+      "decimation": 2,
+      "control_dt": 0.016666666666666666,
+      "episode_length_s": 15.0,
+      "default_num_envs": 4096,
+      "terrain": "plane",
+      "static_friction": 1.0,
+      "dynamic_friction": 1.0,
+      "restitution": 0.0,
+      "action_scale": 1.0,
+      "action_space": 21,
+      "observation_space": 75,
+      "termination_height": 0.95
+    },
+    "reward": {
+      "design_goal": "Encourage a more upright, forward-facing, controlled gait than Isaac V0 while keeping the same Isaac simulator and task.",
+      "progress_reward": "change in negative distance-to-target potential",
+      "alive_reward_scale": 1.0,
+      "heading_weight": 1.0,
+      "heading_full_reward_threshold": 0.8,
+      "up_weight": 0.5,
+      "up_reward_threshold": 0.93,
+      "actions_cost_scale": 0.02,
+      "energy_cost_scale": 0.08,
+      "dof_vel_scale": 0.1,
+      "dof_at_limit_cost": "subtract count of joints with scaled position > 0.98",
+      "death_cost": -5.0,
+      "angular_velocity_scale": 0.25,
+      "contact_force_scale": 0.01,
+      "official_v0_parameters": {
+        "heading_weight": 0.5,
+        "up_weight": 0.1,
+        "energy_cost_scale": 0.05,
+        "actions_cost_scale": 0.01,
+        "alive_reward_scale": 2.0,
+        "dof_vel_scale": 0.1,
+        "death_cost": -1.0,
+        "termination_height": 0.8,
+        "angular_velocity_scale": 0.25,
+        "contact_force_scale": 0.01
+      },
+      "configured_parameters": {
+        "heading_weight": 1.0,
+        "up_weight": 0.5,
+        "energy_cost_scale": 0.08,
+        "actions_cost_scale": 0.02,
+        "alive_reward_scale": 1.0,
+        "dof_vel_scale": 0.1,
+        "death_cost": -5.0,
+        "termination_height": 0.95,
+        "angular_velocity_scale": 0.25,
+        "contact_force_scale": 0.01
+      },
+      "parameter_changes_from_v0": {
+        "heading_weight": {
+          "official_v0": 0.5,
+          "configured": 1.0
+        },
+        "up_weight": {
+          "official_v0": 0.1,
+          "configured": 0.5
+        },
+        "energy_cost_scale": {
+          "official_v0": 0.05,
+          "configured": 0.08
+        },
+        "actions_cost_scale": {
+          "official_v0": 0.01,
+          "configured": 0.02
+        },
+        "alive_reward_scale": {
+          "official_v0": 2.0,
+          "configured": 1.0
+        },
+        "death_cost": {
+          "official_v0": -1.0,
+          "configured": -5.0
+        },
+        "termination_height": {
+          "official_v0": 0.8,
+          "configured": 0.95
+        }
+      },
+      "auto_hydra_overrides": [
+        "env.heading_weight=1.0",
+        "env.up_weight=0.5",
+        "env.energy_cost_scale=0.08",
+        "env.actions_cost_scale=0.02",
+        "env.alive_reward_scale=1.0",
+        "env.death_cost=-5.0",
+        "env.termination_height=0.95"
+      ],
+      "notes": [
+        "V1 keeps Isaac Lab physics unchanged and changes reward coefficients only.",
+        "Stronger heading and upright rewards discourage hunched or sideways progress.",
+        "Lower alive reward makes survival without useful posture less dominant.",
+        "Higher action and energy penalties discourage thrashy control.",
+        "Higher termination height and stronger death cost punish collapsed locomotion earlier."
+      ]
+    },
+    "training": {
+      "algorithm": "RSL-RL PPO",
+      "loss_version": "isaac_rsl_rl_ppo_default",
+      "loss_note": "V1 changes Isaac reward coefficients only; PPO loss is unchanged.",
+      "num_envs": 4096,
+      "num_steps_per_env": 32,
+      "max_iterations": 115,
+      "configured_total_timesteps": 15000000,
+      "expected_env_steps": 15073280,
+      "device": "cuda:0"
+    }
+  },
+  "seed": 301,
+  "num_envs": 4096,
+  "num_steps_per_env": 32,
+  "max_iterations": 115,
+  "configured_total_timesteps": 15000000,
+  "expected_env_steps": 15073280,
+  "experiment_name": "humanoid_direct_single_ppo_v1",
+  "run_name": "upright_controlled_v1",
+  "run_dir": null,
+  "checkpoint": null,
+  "elapsed_seconds": 67.75044560432434,
+  "command": [
+    "/workspace/IsaacLab/isaaclab.sh",
+    "-p",
+    "scripts/reinforcement_learning/rsl_rl/train.py",
+    "--task",
+    "Isaac-Humanoid-Direct-v0",
+    "--num_envs",
+    "4096",
+    "--seed",
+    "301",
+    "--max_iterations",
+    "115",
+    "--experiment_name",
+    "humanoid_direct_single_ppo_v1",
+    "--run_name",
+    "upright_controlled_v1",
+    "--device",
+    "cuda:0",
+    "agent.num_steps_per_env=32",
+    "agent.save_interval=10",
+    "--headless",
+    "env.heading_weight=1.0",
+    "env.up_weight=0.5",
+    "env.energy_cost_scale=0.08",
+    "env.actions_cost_scale=0.02",
+    "env.alive_reward_scale=1.0",
+    "env.death_cost=-5.0",
+    "env.termination_height=0.95"
+  ]
+}
