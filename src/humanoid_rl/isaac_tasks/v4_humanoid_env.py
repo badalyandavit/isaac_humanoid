@@ -36,6 +36,9 @@ class HumanoidV4EnvCfg(HumanoidEnvCfg):
     target_forward_velocity: float = 0.0
     forward_velocity_reward_scale: float = 0.0
     forward_velocity_sigma: float = 0.6
+    forward_velocity_tracking_penalty_scale: float = 0.0
+    max_forward_velocity: float = 2.0
+    high_forward_velocity_penalty_scale: float = 0.0
     lateral_velocity_penalty_scale: float = 0.0
     low_speed_threshold: float = 0.5
     low_speed_vertical_penalty_scale: float = 0.0
@@ -49,6 +52,14 @@ class HumanoidV4EnvCfg(HumanoidEnvCfg):
     double_foot_contact_penalty_scale: float = 0.0
     foot_contact_balance_penalty_scale: float = 0.0
     foot_contact_ema_decay: float = 0.98
+    foot_contact_transition_reward_scale: float = 0.0
+    foot_contact_transition_target: float = 0.35
+    swing_foot_clearance_height: float = 0.26
+    swing_foot_clearance_reward_scale: float = 0.0
+    step_length_target: float = 0.35
+    step_length_reward_scale: float = 0.0
+    max_foot_lateral_distance: float = 0.45
+    foot_lateral_distance_penalty_scale: float = 0.0
 
 
 class HumanoidV4Env(HumanoidEnv):
@@ -71,6 +82,7 @@ class HumanoidV4Env(HumanoidEnv):
         self._previous_root_xy = torch.zeros((self.num_envs, 2), device=self.device)
         self._foot_contact_ema = torch.zeros((self.num_envs, 2), device=self.device)
         self._previous_foot_contact_side = torch.full((self.num_envs,), -1, dtype=torch.long, device=self.device)
+        self._previous_foot_contact_balance = torch.zeros(self.num_envs, device=self.device)
 
     def _reset_idx(self, env_ids):
         super()._reset_idx(env_ids)
@@ -78,10 +90,12 @@ class HumanoidV4Env(HumanoidEnv):
             self._previous_actions_for_rate.zero_()
             self._foot_contact_ema.zero_()
             self._previous_foot_contact_side.fill_(-1)
+            self._previous_foot_contact_balance.zero_()
         else:
             self._previous_actions_for_rate[env_ids] = 0.0
             self._foot_contact_ema[env_ids] = 0.0
             self._previous_foot_contact_side[env_ids] = -1
+            self._previous_foot_contact_balance[env_ids] = 0.0
         self._cache_current_root_xy(env_ids)
 
     def _get_rewards(self) -> torch.Tensor:
@@ -116,6 +130,8 @@ class HumanoidV4Env(HumanoidEnv):
         vertical_velocity = self._root_vertical_velocity(data)
         vertical_velocity_penalty = self.cfg.vertical_velocity_penalty_scale * vertical_velocity.square()
         forward_velocity_reward = self._forward_velocity_reward(forward_velocity)
+        forward_velocity_tracking_penalty = self._forward_velocity_tracking_penalty(forward_velocity)
+        high_forward_velocity_penalty = self._high_forward_velocity_penalty(forward_velocity)
         lateral_velocity_penalty = self.cfg.lateral_velocity_penalty_scale * lateral_velocity.square()
         low_speed_vertical_penalty = self._low_speed_vertical_penalty(forward_velocity, vertical_velocity)
 
@@ -136,7 +152,7 @@ class HumanoidV4Env(HumanoidEnv):
         )
         foot_air_penalty = self._foot_air_penalty(body_heights)
         foot_slip_penalty = self._foot_slip_penalty(data, body_heights)
-        foot_contact_terms = self._foot_contact_terms(data, body_heights)
+        foot_contact_terms = self._foot_contact_terms(data, body_pos, body_heights)
 
         leg_pose_penalty = self._masked_square_penalty(
             self.dof_pos_scaled, self._leg_joint_mask, self.cfg.leg_pose_penalty_scale
@@ -172,9 +188,14 @@ class HumanoidV4Env(HumanoidEnv):
             + forward_velocity_reward
             + foot_contact_terms["single_foot_contact_reward"]
             + foot_contact_terms["foot_contact_switch_reward"]
+            + foot_contact_terms["foot_contact_transition_reward"]
+            + foot_contact_terms["swing_foot_clearance_reward"]
+            + foot_contact_terms["step_length_reward"]
             - height_tracking_penalty
             - low_height_penalty
             - high_height_penalty
+            - forward_velocity_tracking_penalty
+            - high_forward_velocity_penalty
             - torso_low_penalty
             - arm_low_penalty
             - arm_high_penalty
@@ -184,6 +205,7 @@ class HumanoidV4Env(HumanoidEnv):
             - foot_contact_terms["no_foot_contact_penalty"]
             - foot_contact_terms["double_foot_contact_penalty"]
             - foot_contact_terms["foot_contact_balance_penalty"]
+            - foot_contact_terms["foot_lateral_distance_penalty"]
             - leg_pose_penalty
             - arm_pose_penalty
             - arm_velocity_penalty
@@ -201,6 +223,8 @@ class HumanoidV4Env(HumanoidEnv):
             lateral_velocity=lateral_velocity,
             height_bonus=height_bonus,
             forward_velocity_reward=forward_velocity_reward,
+            forward_velocity_tracking_penalty=forward_velocity_tracking_penalty,
+            high_forward_velocity_penalty=high_forward_velocity_penalty,
             height_tracking_penalty=height_tracking_penalty,
             low_height_penalty=low_height_penalty,
             high_height_penalty=high_height_penalty,
@@ -212,11 +236,17 @@ class HumanoidV4Env(HumanoidEnv):
             foot_slip_penalty=foot_slip_penalty,
             single_foot_contact_reward=foot_contact_terms["single_foot_contact_reward"],
             foot_contact_switch_reward=foot_contact_terms["foot_contact_switch_reward"],
+            foot_contact_transition_reward=foot_contact_terms["foot_contact_transition_reward"],
+            swing_foot_clearance_reward=foot_contact_terms["swing_foot_clearance_reward"],
+            step_length_reward=foot_contact_terms["step_length_reward"],
             no_foot_contact_penalty=foot_contact_terms["no_foot_contact_penalty"],
             double_foot_contact_penalty=foot_contact_terms["double_foot_contact_penalty"],
             foot_contact_balance_penalty=foot_contact_terms["foot_contact_balance_penalty"],
+            foot_lateral_distance_penalty=foot_contact_terms["foot_lateral_distance_penalty"],
             left_foot_contact=foot_contact_terms["left_foot_contact"],
             right_foot_contact=foot_contact_terms["right_foot_contact"],
+            step_length=foot_contact_terms["step_length"],
+            foot_lateral_distance=foot_contact_terms["foot_lateral_distance"],
             leg_pose_penalty=leg_pose_penalty,
             arm_pose_penalty=arm_pose_penalty,
             arm_velocity_penalty=arm_velocity_penalty,
@@ -411,6 +441,20 @@ class HumanoidV4Env(HumanoidEnv):
         )
         return self.cfg.forward_velocity_reward_scale * torch.exp(-normalized_error.square())
 
+    def _forward_velocity_tracking_penalty(self, forward_velocity: torch.Tensor) -> torch.Tensor:
+        if self.cfg.forward_velocity_tracking_penalty_scale == 0.0:
+            return torch.zeros(self.num_envs, device=self.device)
+        normalized_error = (forward_velocity - self.cfg.target_forward_velocity) / max(
+            1.0e-6, self.cfg.forward_velocity_sigma
+        )
+        return self.cfg.forward_velocity_tracking_penalty_scale * normalized_error.square()
+
+    def _high_forward_velocity_penalty(self, forward_velocity: torch.Tensor) -> torch.Tensor:
+        if self.cfg.high_forward_velocity_penalty_scale == 0.0:
+            return torch.zeros(self.num_envs, device=self.device)
+        excess = torch.clamp(forward_velocity - self.cfg.max_forward_velocity, min=0.0)
+        return self.cfg.high_forward_velocity_penalty_scale * excess.square()
+
     def _low_speed_vertical_penalty(
         self,
         forward_velocity: torch.Tensor,
@@ -426,28 +470,43 @@ class HumanoidV4Env(HumanoidEnv):
         )
         return self.cfg.low_speed_vertical_penalty_scale * speed_deficit * vertical_velocity.square()
 
-    def _foot_contact_terms(self, data, body_heights: torch.Tensor) -> dict[str, torch.Tensor]:
+    def _foot_contact_terms(self, data, body_pos: torch.Tensor, body_heights: torch.Tensor) -> dict[str, torch.Tensor]:
         zeros = torch.zeros(self.num_envs, device=self.device)
         terms = {
             "single_foot_contact_reward": zeros,
             "foot_contact_switch_reward": zeros,
+            "foot_contact_transition_reward": zeros,
+            "swing_foot_clearance_reward": zeros,
+            "step_length_reward": zeros,
             "no_foot_contact_penalty": zeros,
             "double_foot_contact_penalty": zeros,
             "foot_contact_balance_penalty": zeros,
+            "foot_lateral_distance_penalty": zeros,
             "left_foot_contact": zeros,
             "right_foot_contact": zeros,
+            "step_length": zeros,
+            "foot_lateral_distance": zeros,
         }
         if self._foot_body_mask is None or not torch.any(self._foot_body_mask):
             return terms
 
         foot_contacts = self._foot_contact_values(data, body_heights)
+        foot_pos = body_pos[:, self._foot_body_mask]
+        foot_heights = body_heights[:, self._foot_body_mask]
         left_mask = self._side_mask_with_fallback(self._left_foot_body_mask, prefer_left=True)
         right_mask = self._side_mask_with_fallback(self._right_foot_body_mask, prefer_left=False)
         left_contact = self._masked_max(foot_contacts, left_mask)
         right_contact = self._masked_max(foot_contacts, right_mask)
+        left_height = self._masked_mean(foot_heights, left_mask)
+        right_height = self._masked_mean(foot_heights, right_mask)
+        left_foot_xy = self._masked_mean_vec(foot_pos[..., :2], left_mask)
+        right_foot_xy = self._masked_mean_vec(foot_pos[..., :2], right_mask)
+        step_length = torch.abs(left_foot_xy[:, 0] - right_foot_xy[:, 0])
+        foot_lateral_distance = torch.abs(left_foot_xy[:, 1] - right_foot_xy[:, 1])
         contact_pair = torch.stack((left_contact, right_contact), dim=-1)
         contact_binary = (contact_pair > 0.5).float()
         contact_count = torch.sum(contact_binary, dim=-1)
+        contact_present = torch.clamp(left_contact + right_contact, min=0.0, max=1.0)
 
         single_contact = (contact_count == 1.0).float()
         no_contact = (contact_count < 0.5).float()
@@ -455,12 +514,30 @@ class HumanoidV4Env(HumanoidEnv):
         single_foot_contact_reward = self.cfg.single_foot_contact_reward_scale * single_contact
         no_foot_contact_penalty = self.cfg.no_foot_contact_penalty_scale * no_contact
         double_foot_contact_penalty = self.cfg.double_foot_contact_penalty_scale * double_contact
+        step_length_reward = self.cfg.step_length_reward_scale * contact_present * torch.clamp(
+            step_length / max(1.0e-6, self.cfg.step_length_target),
+            min=0.0,
+            max=1.0,
+        )
+        lateral_excess = torch.clamp(foot_lateral_distance - self.cfg.max_foot_lateral_distance, min=0.0)
+        foot_lateral_distance_penalty = self.cfg.foot_lateral_distance_penalty_scale * lateral_excess.square()
 
         decay = min(0.999, max(0.0, float(self.cfg.foot_contact_ema_decay)))
         self._foot_contact_ema.mul_(decay).add_(contact_pair.detach(), alpha=1.0 - decay)
         foot_contact_balance_penalty = self.cfg.foot_contact_balance_penalty_scale * (
             self._foot_contact_ema[:, 0] - self._foot_contact_ema[:, 1]
         ).square()
+        contact_balance = left_contact - right_contact
+        transition_score = torch.clamp(
+            torch.abs(contact_balance - self._previous_foot_contact_balance)
+            / max(1.0e-6, self.cfg.foot_contact_transition_target),
+            min=0.0,
+            max=1.0,
+        )
+        foot_contact_transition_reward = (
+            self.cfg.foot_contact_transition_reward_scale * contact_present * transition_score
+        )
+        self._previous_foot_contact_balance[:] = contact_balance.detach()
 
         current_side = torch.where(
             right_contact > left_contact,
@@ -468,6 +545,15 @@ class HumanoidV4Env(HumanoidEnv):
             torch.zeros(self.num_envs, dtype=torch.long, device=self.device),
         )
         current_side = torch.where(contact_count == 1.0, current_side, -torch.ones_like(current_side))
+        swing_height = torch.where(current_side == 0, right_height, left_height)
+        swing_clearance = torch.clamp(
+            (swing_height - self.cfg.foot_contact_height)
+            / max(1.0e-6, self.cfg.swing_foot_clearance_height - self.cfg.foot_contact_height),
+            min=0.0,
+            max=1.0,
+        )
+        swing_foot_clearance_reward = self.cfg.swing_foot_clearance_reward_scale * single_contact * swing_clearance
+
         switched = (
             (self._previous_foot_contact_side >= 0)
             & (current_side >= 0)
@@ -480,11 +566,17 @@ class HumanoidV4Env(HumanoidEnv):
         return {
             "single_foot_contact_reward": single_foot_contact_reward,
             "foot_contact_switch_reward": foot_contact_switch_reward,
+            "foot_contact_transition_reward": foot_contact_transition_reward,
+            "swing_foot_clearance_reward": swing_foot_clearance_reward,
+            "step_length_reward": step_length_reward,
             "no_foot_contact_penalty": no_foot_contact_penalty,
             "double_foot_contact_penalty": double_foot_contact_penalty,
             "foot_contact_balance_penalty": foot_contact_balance_penalty,
+            "foot_lateral_distance_penalty": foot_lateral_distance_penalty,
             "left_foot_contact": left_contact,
             "right_foot_contact": right_contact,
+            "step_length": step_length,
+            "foot_lateral_distance": foot_lateral_distance,
         }
 
     def _foot_contact_values(self, data, body_heights: torch.Tensor) -> torch.Tensor:
@@ -549,6 +641,16 @@ class HumanoidV4Env(HumanoidEnv):
         if values.shape[1] == 0 or not torch.any(mask):
             return torch.zeros(self.num_envs, device=self.device)
         return torch.amax(values[:, mask], dim=-1)
+
+    def _masked_mean(self, values: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        if values.shape[1] == 0 or not torch.any(mask):
+            return torch.zeros(self.num_envs, device=self.device)
+        return torch.mean(values[:, mask], dim=-1)
+
+    def _masked_mean_vec(self, values: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        if values.shape[1] == 0 or not torch.any(mask):
+            return torch.zeros((self.num_envs, values.shape[-1]), device=self.device)
+        return torch.mean(values[:, mask], dim=1)
 
     def _paired_joint_indices(
         self,

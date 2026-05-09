@@ -56,6 +56,9 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "target_forward_velocity": 0.0,
     "forward_velocity_reward_scale": 0.0,
     "forward_velocity_sigma": 0.6,
+    "forward_velocity_tracking_penalty_scale": 0.0,
+    "max_forward_velocity": 2.0,
+    "high_forward_velocity_penalty_scale": 0.0,
     "lateral_velocity_penalty_scale": 0.0,
     "low_speed_threshold": 0.5,
     "low_speed_vertical_penalty_scale": 0.0,
@@ -69,6 +72,14 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "double_foot_contact_penalty_scale": 0.0,
     "foot_contact_balance_penalty_scale": 0.0,
     "foot_contact_ema_decay": 0.98,
+    "foot_contact_transition_reward_scale": 0.0,
+    "foot_contact_transition_target": 0.35,
+    "swing_foot_clearance_height": 0.26,
+    "swing_foot_clearance_reward_scale": 0.0,
+    "step_length_target": 0.35,
+    "step_length_reward_scale": 0.0,
+    "max_foot_lateral_distance": 0.45,
+    "foot_lateral_distance_penalty_scale": 0.0,
 }
 
 
@@ -134,6 +145,13 @@ class IsaacLabPPOConfig:
     target_forward_velocity: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["target_forward_velocity"]
     forward_velocity_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_reward_scale"]
     forward_velocity_sigma: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_sigma"]
+    forward_velocity_tracking_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "forward_velocity_tracking_penalty_scale"
+    ]
+    max_forward_velocity: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_forward_velocity"]
+    high_forward_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "high_forward_velocity_penalty_scale"
+    ]
     lateral_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["lateral_velocity_penalty_scale"]
     low_speed_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_speed_threshold"]
     low_speed_vertical_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_speed_vertical_penalty_scale"]
@@ -149,6 +167,20 @@ class IsaacLabPPOConfig:
         "foot_contact_balance_penalty_scale"
     ]
     foot_contact_ema_decay: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_ema_decay"]
+    foot_contact_transition_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_contact_transition_reward_scale"
+    ]
+    foot_contact_transition_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_transition_target"]
+    swing_foot_clearance_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["swing_foot_clearance_height"]
+    swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "swing_foot_clearance_reward_scale"
+    ]
+    step_length_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_target"]
+    step_length_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_reward_scale"]
+    max_foot_lateral_distance: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_foot_lateral_distance"]
+    foot_lateral_distance_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_lateral_distance_penalty_scale"
+    ]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -260,6 +292,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "arm joint velocity penalty",
                     "leg action and pose symmetry penalties",
                     "target forward velocity reward",
+                    "forward velocity tracking and high-speed penalties",
                     "lateral velocity penalty",
                     "low-speed vertical bounce penalty",
                     "action-rate penalty for smoother motion",
@@ -267,6 +300,9 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "non-foot low-body proxy penalty",
                     "feet airborne and foot-slip proxy penalties",
                     "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
+                    "soft foot-contact transition reward",
+                    "swing-foot clearance and step-length rewards",
+                    "foot lateral spread penalty",
                     "custom reward diagnostics under extras['log']",
                 ]
                 if cfg.custom_isaac_task
