@@ -14,6 +14,7 @@
 - `2026-05-09_21-20-09_balanced_gait_v10` -> Isaac V10
 - `2026-05-09_21-56-10_grounded_gait_v11` -> Isaac V11
 - `2026-05-09_22-37-01_touchdown_slip_v12` -> Isaac V12
+- `2026-05-09_23-08-31_airtime_balance_v13` -> Isaac V13
 
 ## Figures
 - [isaac_reward.png](isaac_reward.png)
@@ -28,6 +29,7 @@
 - **Isaac V10**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time, custom/action_rate_penalty, custom/arm_action_penalty, custom/arm_high_penalty, custom/arm_low_penalty, custom/arm_pose_penalty, custom/arm_velocity_penalty, custom/double_foot_contact_penalty, custom/foot_air_penalty, custom/foot_contact_balance_penalty, custom/foot_contact_switch_reward, custom/foot_contact_transition_reward, custom/foot_height_difference, custom/foot_height_difference_reward, custom/foot_lateral_distance, custom/foot_lateral_distance_penalty, custom/foot_slip_penalty, custom/forward_velocity, custom/forward_velocity_reward, custom/forward_velocity_tracking_penalty, custom/gait_curriculum_scale, custom/height_bonus, custom/height_tracking_penalty, custom/high_forward_velocity_penalty, custom/high_height_penalty, custom/lateral_velocity, custom/lateral_velocity_penalty, custom/left_foot_contact, custom/leg_action_symmetry_penalty, custom/leg_pose_penalty, custom/leg_pose_symmetry_penalty, custom/low_height_penalty, custom/low_speed_vertical_penalty, custom/no_foot_contact_penalty, custom/non_foot_low_penalty, custom/right_foot_contact, custom/root_height, custom/single_foot_contact_reward, custom/soft_single_foot_contact_reward, custom/step_length, custom/step_length_reward, custom/swing_foot_clearance_reward, custom/torso_low_penalty, custom/total_reward, custom/vertical_velocity_penalty
 - **Isaac V11**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time, custom/action_rate_penalty, custom/arm_action_penalty, custom/arm_high_penalty, custom/arm_low_penalty, custom/arm_pose_penalty, custom/arm_velocity_penalty, custom/double_foot_contact_penalty, custom/foot_air_penalty, custom/foot_contact_balance_penalty, custom/foot_contact_switch_reward, custom/foot_contact_transition_reward, custom/foot_height_difference, custom/foot_height_difference_penalty, custom/foot_height_difference_reward, custom/foot_lateral_distance, custom/foot_lateral_distance_penalty, custom/foot_slip_penalty, custom/forward_velocity, custom/forward_velocity_reward, custom/forward_velocity_tracking_penalty, custom/gait_curriculum_scale, custom/height_bonus, custom/height_tracking_penalty, custom/high_forward_velocity_penalty, custom/high_height_penalty, custom/lateral_velocity, custom/lateral_velocity_penalty, custom/left_foot_contact, custom/leg_action_symmetry_penalty, custom/leg_pose_penalty, custom/leg_pose_symmetry_penalty, custom/low_height_penalty, custom/low_speed_vertical_penalty, custom/no_foot_contact_penalty, custom/non_foot_low_penalty, custom/right_foot_contact, custom/root_height, custom/single_foot_contact_reward, custom/soft_single_foot_contact_reward, custom/step_length, custom/step_length_reward, custom/swing_foot_clearance_reward, custom/swing_foot_high_penalty, custom/torso_low_penalty, custom/total_reward, custom/vertical_velocity_penalty
 - **Isaac V12**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time, custom/action_rate_penalty, custom/arm_action_penalty, custom/arm_high_penalty, custom/arm_low_penalty, custom/arm_neutral_height_penalty, custom/arm_pose_penalty, custom/arm_velocity_penalty, custom/double_foot_contact_penalty, custom/foot_air_penalty, custom/foot_contact_balance_penalty, custom/foot_contact_switch_reward, custom/foot_contact_transition_reward, custom/foot_height_difference, custom/foot_height_difference_penalty, custom/foot_height_difference_reward, custom/foot_lateral_distance, custom/foot_lateral_distance_penalty, custom/foot_slip_penalty, custom/forward_velocity, custom/forward_velocity_reward, custom/forward_velocity_tracking_penalty, custom/gait_curriculum_scale, custom/height_bonus, custom/height_tracking_penalty, custom/high_forward_velocity_penalty, custom/high_height_penalty, custom/lateral_velocity, custom/lateral_velocity_penalty, custom/left_foot_contact, custom/leg_action_symmetry_penalty, custom/leg_pose_penalty, custom/leg_pose_symmetry_penalty, custom/low_height_penalty, custom/low_speed_vertical_penalty, custom/mean_foot_air_time, custom/no_foot_contact_penalty, custom/non_foot_low_penalty, custom/right_foot_contact, custom/root_height, custom/single_foot_contact_reward, custom/soft_single_foot_contact_reward, custom/stance_foot_slip_penalty, custom/step_length, custom/step_length_reward, custom/swing_foot_clearance_reward, custom/swing_foot_high_penalty, custom/torso_low_penalty, custom/total_reward, custom/touchdown_reward, custom/vertical_velocity_penalty
+- **Isaac V13**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time, custom/action_rate_penalty, custom/arm_action_penalty, custom/arm_high_penalty, custom/arm_low_penalty, custom/arm_neutral_height_penalty, custom/arm_pose_penalty, custom/arm_velocity_penalty, custom/double_foot_contact_penalty, custom/foot_air_penalty, custom/foot_air_time_penalty, custom/foot_contact_balance_penalty, custom/foot_contact_switch_reward, custom/foot_contact_transition_reward, custom/foot_height_difference, custom/foot_height_difference_penalty, custom/foot_height_difference_reward, custom/foot_lateral_distance, custom/foot_lateral_distance_penalty, custom/foot_slip_penalty, custom/forward_velocity, custom/forward_velocity_reward, custom/forward_velocity_tracking_penalty, custom/gait_curriculum_scale, custom/height_bonus, custom/height_tracking_penalty, custom/high_forward_velocity_penalty, custom/high_height_penalty, custom/lateral_velocity, custom/lateral_velocity_penalty, custom/left_foot_contact, custom/leg_action_symmetry_penalty, custom/leg_pose_penalty, custom/leg_pose_symmetry_penalty, custom/low_height_penalty, custom/low_speed_vertical_penalty, custom/max_foot_air_time, custom/mean_foot_air_time, custom/no_foot_contact_penalty, custom/non_foot_low_penalty, custom/right_foot_contact, custom/root_height, custom/single_foot_contact_reward, custom/soft_single_foot_contact_reward, custom/stance_foot_slip_penalty, custom/step_length, custom/step_length_reward, custom/swing_foot_clearance_reward, custom/swing_foot_high_penalty, custom/torso_low_penalty, custom/total_reward, custom/touchdown_reward, custom/vertical_velocity_penalty
 - **Isaac V2**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 - **Isaac V3**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 - **Isaac V4**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
@@ -240,6 +242,70 @@
 | Isaac V12 | custom/total_reward | 1525 | 2.9960789680480957 |
 | Isaac V12 | custom/touchdown_reward | 1525 | 0.0 |
 | Isaac V12 | custom/vertical_velocity_penalty | 1525 | 0.11009083688259125 |
+| Isaac V13 | Loss/entropy | 1525 | -34.60023498535156 |
+| Isaac V13 | Loss/learning_rate | 1525 | 9.999999747378752e-06 |
+| Isaac V13 | Loss/surrogate | 1525 | 0.0006437196861952543 |
+| Isaac V13 | Loss/value_function | 1525 | 7.232972145080566 |
+| Isaac V13 | Perf/collection time | 1525 | 0.2794175148010254 |
+| Isaac V13 | Perf/learning_time | 1525 | 0.053392648696899414 |
+| Isaac V13 | Perf/total_fps | 1525 | 393834.0 |
+| Isaac V13 | Policy/mean_noise_std | 1525 | 0.06659594178199768 |
+| Isaac V13 | Train/mean_episode_length | 1525 | 891.4500122070312 |
+| Isaac V13 | Train/mean_episode_length/time | 581 | 891.4500122070312 |
+| Isaac V13 | Train/mean_reward | 1525 | 3219.835693359375 |
+| Isaac V13 | Train/mean_reward/time | 581 | 3219.835693359375 |
+| Isaac V13 | custom/action_rate_penalty | 1525 | 0.008294973522424698 |
+| Isaac V13 | custom/arm_action_penalty | 1525 | 0.015246557071805 |
+| Isaac V13 | custom/arm_high_penalty | 1525 | 0.03605496138334274 |
+| Isaac V13 | custom/arm_low_penalty | 1525 | 1.2287624485907145e-05 |
+| Isaac V13 | custom/arm_neutral_height_penalty | 1525 | 0.09670516103506088 |
+| Isaac V13 | custom/arm_pose_penalty | 1525 | 0.06585556268692017 |
+| Isaac V13 | custom/arm_velocity_penalty | 1525 | 0.019810723140835762 |
+| Isaac V13 | custom/double_foot_contact_penalty | 1525 | 0.03685546666383743 |
+| Isaac V13 | custom/foot_air_penalty | 1525 | 0.0 |
+| Isaac V13 | custom/foot_air_time_penalty | 1525 | 0.0022379602305591106 |
+| Isaac V13 | custom/foot_contact_balance_penalty | 1525 | 0.2628055512905121 |
+| Isaac V13 | custom/foot_contact_switch_reward | 1525 | 0.00017578124243300408 |
+| Isaac V13 | custom/foot_contact_transition_reward | 1525 | 0.030275162309408188 |
+| Isaac V13 | custom/foot_height_difference | 1525 | 0.045906566083431244 |
+| Isaac V13 | custom/foot_height_difference_penalty | 1525 | 0.0 |
+| Isaac V13 | custom/foot_height_difference_reward | 1525 | 0.0 |
+| Isaac V13 | custom/foot_lateral_distance | 1525 | 0.1786559820175171 |
+| Isaac V13 | custom/foot_lateral_distance_penalty | 1525 | 0.0 |
+| Isaac V13 | custom/foot_slip_penalty | 1525 | 0.40826985239982605 |
+| Isaac V13 | custom/forward_velocity | 1525 | 0.894142746925354 |
+| Isaac V13 | custom/forward_velocity_reward | 1525 | 1.0047459602355957 |
+| Isaac V13 | custom/forward_velocity_tracking_penalty | 1525 | 0.017568502575159073 |
+| Isaac V13 | custom/gait_curriculum_scale | 1525 | 1.0 |
+| Isaac V13 | custom/height_bonus | 1525 | 0.0 |
+| Isaac V13 | custom/height_tracking_penalty | 1525 | 0.00015805172733962536 |
+| Isaac V13 | custom/high_forward_velocity_penalty | 1525 | 0.0004531614831648767 |
+| Isaac V13 | custom/high_height_penalty | 1525 | 0.0 |
+| Isaac V13 | custom/lateral_velocity | 1525 | -0.17702579498291016 |
+| Isaac V13 | custom/lateral_velocity_penalty | 1525 | 0.04557798057794571 |
+| Isaac V13 | custom/left_foot_contact | 1525 | 0.718837320804596 |
+| Isaac V13 | custom/leg_action_symmetry_penalty | 1525 | 0.02010710909962654 |
+| Isaac V13 | custom/leg_pose_penalty | 1525 | 0.15034988522529602 |
+| Isaac V13 | custom/leg_pose_symmetry_penalty | 1525 | 0.0220431387424469 |
+| Isaac V13 | custom/low_height_penalty | 1525 | 0.00024590492830611765 |
+| Isaac V13 | custom/low_speed_vertical_penalty | 1525 | 0.0030911352951079607 |
+| Isaac V13 | custom/max_foot_air_time | 1525 | 0.05292969197034836 |
+| Isaac V13 | custom/mean_foot_air_time | 1525 | 0.02647705189883709 |
+| Isaac V13 | custom/no_foot_contact_penalty | 1525 | 0.0011718750465661287 |
+| Isaac V13 | custom/non_foot_low_penalty | 1525 | 0.19944024085998535 |
+| Isaac V13 | custom/right_foot_contact | 1525 | 0.46116089820861816 |
+| Isaac V13 | custom/root_height | 1525 | 1.256181240081787 |
+| Isaac V13 | custom/single_foot_contact_reward | 1525 | 0.03459472581744194 |
+| Isaac V13 | custom/soft_single_foot_contact_reward | 1525 | 0.010784686543047428 |
+| Isaac V13 | custom/stance_foot_slip_penalty | 1525 | 0.3456423878669739 |
+| Isaac V13 | custom/step_length | 1525 | 0.40530335903167725 |
+| Isaac V13 | custom/step_length_reward | 1525 | 0.039232976734638214 |
+| Isaac V13 | custom/swing_foot_clearance_reward | 1525 | 0.0 |
+| Isaac V13 | custom/swing_foot_high_penalty | 1525 | 0.0 |
+| Isaac V13 | custom/torso_low_penalty | 1525 | 0.14804676175117493 |
+| Isaac V13 | custom/total_reward | 1525 | 3.595970392227173 |
+| Isaac V13 | custom/touchdown_reward | 1525 | 0.01663121022284031 |
+| Isaac V13 | custom/vertical_velocity_penalty | 1525 | 0.11088809370994568 |
 | Isaac V2 | Loss/entropy | 1525 | 11.725503921508789 |
 | Isaac V2 | Loss/learning_rate | 1525 | 0.00011390625149942935 |
 | Isaac V2 | Loss/surrogate | 1525 | -0.0013880010228604078 |
