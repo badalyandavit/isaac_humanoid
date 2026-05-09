@@ -81,6 +81,8 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "touchdown_reward_scale": 0.0,
     "min_touchdown_air_time": 0.10,
     "max_touchdown_air_time": 0.50,
+    "max_foot_air_time": 0.45,
+    "foot_air_time_penalty_scale": 0.0,
     "swing_foot_clearance_height": 0.26,
     "swing_foot_clearance_reward_scale": 0.0,
     "max_swing_foot_height": 0.34,
@@ -199,6 +201,8 @@ class IsaacLabPPOConfig:
     touchdown_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["touchdown_reward_scale"]
     min_touchdown_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["min_touchdown_air_time"]
     max_touchdown_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_touchdown_air_time"]
+    max_foot_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_foot_air_time"]
+    foot_air_time_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_time_penalty_scale"]
     swing_foot_clearance_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["swing_foot_clearance_height"]
     swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "swing_foot_clearance_reward_scale"
@@ -344,6 +348,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "feet airborne, foot-slip, and stance-foot slip proxy penalties",
                     "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
                     "air-time-to-touchdown reward for real alternating steps",
+                    "maximum foot-air-time penalty to discourage one-foot airborne gliding",
                     "soft foot-contact transition reward",
                     "soft single-support and foot-height-difference rewards",
                     "swing-foot clearance and step-length rewards",

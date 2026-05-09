@@ -32,6 +32,7 @@ configs/
   isaac_ppo_v10.yaml
   isaac_ppo_v11.yaml
   isaac_ppo_v12.yaml
+  isaac_ppo_v13.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -339,6 +340,20 @@ V12 targets the remaining V11 shuffle/slide failure mode:
 - slightly slower target forward speed and stronger double-contact pressure
 - keeps V11's high-foot and foot-height-difference safeguards
 
+The Isaac V13 air-time-balance custom-reward variant is named:
+
+```text
+isaac_v13_airtime_balance_reward_humanoid_direct
+```
+
+V13 targets the V12 one-foot airborne glide:
+
+- explicit maximum foot-air-time penalty
+- stronger sustained left/right contact-balance penalty
+- tighter left/right foot-height-difference limit
+- reduced stance-foot slip pressure so one airborne foot is less attractive
+- keeps touchdown reward as a secondary cue rather than the main gait driver
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
@@ -356,6 +371,7 @@ make isaac-ppo-v9
 make isaac-ppo-v10
 make isaac-ppo-v11
 make isaac-ppo-v12
+make isaac-ppo-v13
 ```
 
 The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
@@ -393,6 +409,7 @@ outputs/isaac_ppo_v9/manifest.json
 outputs/isaac_ppo_v10/manifest.json
 outputs/isaac_ppo_v11/manifest.json
 outputs/isaac_ppo_v12/manifest.json
+outputs/isaac_ppo_v13/manifest.json
 ```
 
 Isaac Lab writes training TensorBoard event files under:
@@ -401,7 +418,7 @@ Isaac Lab writes training TensorBoard event files under:
 /workspace/IsaacLab/logs/rsl_rl/humanoid_direct/
 ```
 
-Export Isaac V0/V1/V2/V3/V4/V5/V6/V7/V8/V9/V10/V11/V12 scalar logs and learning-curve figures into this repo:
+Export Isaac V0/V1/V2/V3/V4/V5/V6/V7/V8/V9/V10/V11/V12/V13 scalar logs and learning-curve figures into this repo:
 
 ```bash
 make isaac-curves
@@ -434,6 +451,7 @@ make isaac-video-v9
 make isaac-video-v10
 make isaac-video-v11
 make isaac-video-v12
+make isaac-video-v13
 ```
 
 This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
@@ -456,6 +474,7 @@ make isaac-video-track-v9
 make isaac-video-track-v10
 make isaac-video-track-v11
 make isaac-video-track-v12
+make isaac-video-track-v13
 ```
 
 The tracked-camera recorder creates a temporary patched copy of Isaac Lab's
@@ -479,6 +498,7 @@ outputs/videos/isaac_v9_policy.mp4
 outputs/videos/isaac_v10_policy.mp4
 outputs/videos/isaac_v11_policy.mp4
 outputs/videos/isaac_v12_policy.mp4
+outputs/videos/isaac_v13_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
@@ -492,6 +512,7 @@ outputs/videos/isaac_v9_policy_tracked.mp4
 outputs/videos/isaac_v10_policy_tracked.mp4
 outputs/videos/isaac_v11_policy_tracked.mp4
 outputs/videos/isaac_v12_policy_tracked.mp4
+outputs/videos/isaac_v13_policy_tracked.mp4
 ```
 
 The video script uses the checkpoint recorded in each Isaac training manifest
@@ -517,6 +538,7 @@ make isaac-v9-spec
 make isaac-v10-spec
 make isaac-v11-spec
 make isaac-v12-spec
+make isaac-v13-spec
 ```
 
 Outputs:
@@ -559,6 +581,9 @@ outputs/isaac_ppo_v11/
   baseline_spec.json
   baseline_spec.md
 outputs/isaac_ppo_v12/
+  baseline_spec.json
+  baseline_spec.md
+outputs/isaac_ppo_v13/
   baseline_spec.json
   baseline_spec.md
 ```
