@@ -88,6 +88,10 @@ make isaac-video-v0
 make isaac-video-v1
 make isaac-video-v2
 make isaac-video-v3
+make isaac-video-track-v0
+make isaac-video-track-v1
+make isaac-video-track-v2
+make isaac-video-track-v3
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -188,10 +192,18 @@ outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
+outputs/videos/isaac_v0_policy_tracked.mp4
+outputs/videos/isaac_v1_policy_tracked.mp4
+outputs/videos/isaac_v2_policy_tracked.mp4
+outputs/videos/isaac_v3_policy_tracked.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must
-be available in the Isaac environment.
+be available in the Isaac environment. The untracked videos preserve Isaac
+Lab's default fixed camera. The `isaac-video-track-*` targets patch a temporary
+copy of Isaac Lab's play script at runtime and update the viewer camera from
+the env-0 torso position; use them for presentation clips when the policy moves
+out of the default frame.
 
 Isaac learning curves are exported from TensorBoard event files in
 `/workspace/IsaacLab/logs/rsl_rl/humanoid_direct/` to:

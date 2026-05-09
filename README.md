@@ -29,6 +29,7 @@ scripts/
   train_isaac_ppo_baseline.py
   write_isaac_baseline_spec.py
   record_isaac_video.py
+  record_isaac_tracking_video.py
   plot_isaac_learning_curves.py
   evaluate_single.py
   plot_learning_curves.py
@@ -242,7 +243,22 @@ make isaac-video-v3
 ```
 
 This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
-the Isaac environment.
+the Isaac environment. These videos use Isaac Lab's default viewer camera, so
+fast policies may walk out of frame.
+
+Record tracked-camera videos when you want the camera to follow the humanoid:
+
+```bash
+make isaac-video-track-v0
+make isaac-video-track-v1
+make isaac-video-track-v2
+make isaac-video-track-v3
+```
+
+The tracked-camera recorder creates a temporary patched copy of Isaac Lab's
+RSL-RL `play.py` under `/workspace/IsaacLab/logs/rsl_rl/` and updates the
+viewer camera from the env-0 torso position every step. It does not change the
+policy, checkpoint, simulator, reward, or training code.
 
 Outputs:
 
@@ -251,6 +267,10 @@ outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
 outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
+outputs/videos/isaac_v0_policy_tracked.mp4
+outputs/videos/isaac_v1_policy_tracked.mp4
+outputs/videos/isaac_v2_policy_tracked.mp4
+outputs/videos/isaac_v3_policy_tracked.mp4
 ```
 
 The video script uses the checkpoint recorded in each Isaac training manifest
