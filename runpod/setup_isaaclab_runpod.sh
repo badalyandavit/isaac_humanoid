@@ -38,7 +38,7 @@ if [[ "${ISAACLAB_USE_SYSTEM_PYTHON}" != "1" && -z "${VIRTUAL_ENV:-}" ]]; then
 fi
 
 python -m pip install --upgrade pip
-python -m pip install --upgrade "setuptools<81" wheel
+python -m pip install --upgrade "setuptools<81" "wheel<0.47" "packaging==23.0"
 
 PIP_CONSTRAINT_ARGS=()
 if [[ "${PRESERVE_TORCH}" == "1" ]]; then
@@ -92,9 +92,9 @@ fi
 cd "${ISAACLAB_DIR}"
 ./isaaclab.sh --install
 if [[ "${PRESERVE_TORCH}" != "1" ]]; then
-  python -m pip install --index-url "${PYTORCH_CUDA_INDEX}" "torchaudio==2.7.0"
+  python -m pip install --index-url "${PYTORCH_CUDA_INDEX}" "torch==2.7.0" "torchvision==0.22.0" "torchaudio==2.7.0"
 fi
-python -m pip install "click==8.1.7"
+python -m pip install "packaging==23.0" "click==8.1.7" "typer<0.17"
 ./isaaclab.sh -p - <<'PY'
 import gymnasium as gym
 import isaaclab_tasks  # noqa: F401
