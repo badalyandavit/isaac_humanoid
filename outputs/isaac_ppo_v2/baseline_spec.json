@@ -1,0 +1,122 @@
+{
+  "baseline_name": "isaac_v2_mild_upright_controlled_humanoid_direct",
+  "simulator_backend": "Isaac Lab",
+  "task": "Isaac-Humanoid-Direct-v0",
+  "reward_version": "isaac_v2_mild_upright_controlled",
+  "loss_version": "isaac_rsl_rl_ppo_default",
+  "source": "Isaac Lab official direct humanoid task",
+  "reference_url": "https://isaac-sim.github.io/IsaacLab/main/source/tutorials/03_envs/modify_direct_rl_env.html",
+  "comparison_note": "This is a separate Isaac Lab baseline. Do not compare reward values directly against Gymnasium/MuJoCo Humanoid-v5.",
+  "simulator": {
+    "dt": 0.008333333333333333,
+    "decimation": 2,
+    "control_dt": 0.016666666666666666,
+    "episode_length_s": 15.0,
+    "default_num_envs": 4096,
+    "terrain": "plane",
+    "static_friction": 1.0,
+    "dynamic_friction": 1.0,
+    "restitution": 0.0,
+    "action_scale": 1.0,
+    "action_space": 21,
+    "observation_space": 75,
+    "termination_height": 0.85
+  },
+  "reward": {
+    "design_goal": "Encourage cleaner upright forward locomotion without the harsh early termination and penalties used in V1.",
+    "progress_reward": "change in negative distance-to-target potential",
+    "alive_reward_scale": 1.5,
+    "heading_weight": 0.75,
+    "heading_full_reward_threshold": 0.8,
+    "up_weight": 0.25,
+    "up_reward_threshold": 0.93,
+    "actions_cost_scale": 0.015,
+    "energy_cost_scale": 0.06,
+    "dof_vel_scale": 0.1,
+    "dof_at_limit_cost": "subtract count of joints with scaled position > 0.98",
+    "death_cost": -2.0,
+    "angular_velocity_scale": 0.25,
+    "contact_force_scale": 0.01,
+    "official_v0_parameters": {
+      "heading_weight": 0.5,
+      "up_weight": 0.1,
+      "energy_cost_scale": 0.05,
+      "actions_cost_scale": 0.01,
+      "alive_reward_scale": 2.0,
+      "dof_vel_scale": 0.1,
+      "death_cost": -1.0,
+      "termination_height": 0.8,
+      "angular_velocity_scale": 0.25,
+      "contact_force_scale": 0.01
+    },
+    "configured_parameters": {
+      "heading_weight": 0.75,
+      "up_weight": 0.25,
+      "energy_cost_scale": 0.06,
+      "actions_cost_scale": 0.015,
+      "alive_reward_scale": 1.5,
+      "dof_vel_scale": 0.1,
+      "death_cost": -2.0,
+      "termination_height": 0.85,
+      "angular_velocity_scale": 0.25,
+      "contact_force_scale": 0.01
+    },
+    "parameter_changes_from_v0": {
+      "heading_weight": {
+        "official_v0": 0.5,
+        "configured": 0.75
+      },
+      "up_weight": {
+        "official_v0": 0.1,
+        "configured": 0.25
+      },
+      "energy_cost_scale": {
+        "official_v0": 0.05,
+        "configured": 0.06
+      },
+      "actions_cost_scale": {
+        "official_v0": 0.01,
+        "configured": 0.015
+      },
+      "alive_reward_scale": {
+        "official_v0": 2.0,
+        "configured": 1.5
+      },
+      "death_cost": {
+        "official_v0": -1.0,
+        "configured": -2.0
+      },
+      "termination_height": {
+        "official_v0": 0.8,
+        "configured": 0.85
+      }
+    },
+    "auto_hydra_overrides": [
+      "env.heading_weight=0.75",
+      "env.up_weight=0.25",
+      "env.energy_cost_scale=0.06",
+      "env.actions_cost_scale=0.015",
+      "env.alive_reward_scale=1.5",
+      "env.death_cost=-2.0",
+      "env.termination_height=0.85"
+    ],
+    "notes": [
+      "V2 keeps Isaac Lab physics unchanged and changes reward coefficients only.",
+      "V2 is intentionally softer than V1 because V1 over-penalized early falling before balance was learned.",
+      "Heading and upright terms are stronger than V0 but not dominant.",
+      "Alive reward remains meaningful so the policy has a survival curriculum while learning locomotion.",
+      "Termination height and death cost are only mildly stricter than V0."
+    ]
+  },
+  "training": {
+    "algorithm": "RSL-RL PPO",
+    "loss_version": "isaac_rsl_rl_ppo_default",
+    "loss_note": "Isaac shaped variants change reward coefficients only; PPO loss is unchanged.",
+    "num_envs": 4096,
+    "num_steps_per_env": 32,
+    "max_iterations": 1526,
+    "configured_total_timesteps": 200000000,
+    "expected_env_steps": 200015872,
+    "device": "cuda:0"
+  }
+}

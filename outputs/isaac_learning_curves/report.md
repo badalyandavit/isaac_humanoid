@@ -3,6 +3,7 @@
 ## Runs
 - `2026-05-09_13-06-26_baseline` -> Isaac V0
 - `2026-05-09_13-04-55_upright_controlled_v1` -> Isaac V1
+- `2026-05-09_13-35-58_mild_upright_v2` -> Isaac V2
 
 ## Figures
 - [isaac_reward.png](isaac_reward.png)
@@ -14,6 +15,7 @@
 ## Available Scalar Tags
 - **Isaac V0**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 - **Isaac V1**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
+- **Isaac V2**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 
 ## Latest Scalar Values
 | method | tag | step | value |
@@ -42,5 +44,17 @@
 | Isaac V1 | Train/mean_episode_length/time | 40 | 75.22000122070312 |
 | Isaac V1 | Train/mean_reward | 114 | 259.255615234375 |
 | Isaac V1 | Train/mean_reward/time | 40 | 259.255615234375 |
+| Isaac V2 | Loss/entropy | 1525 | 11.725503921508789 |
+| Isaac V2 | Loss/learning_rate | 1525 | 0.00011390625149942935 |
+| Isaac V2 | Loss/surrogate | 1525 | -0.0013880010228604078 |
+| Isaac V2 | Loss/value_function | 1525 | 6933.48193359375 |
+| Isaac V2 | Perf/collection time | 1525 | 0.28447985649108887 |
+| Isaac V2 | Perf/learning_time | 1525 | 0.05452394485473633 |
+| Isaac V2 | Perf/total_fps | 1525 | 386638.0 |
+| Isaac V2 | Policy/mean_noise_std | 1525 | 0.46027183532714844 |
+| Isaac V2 | Train/mean_episode_length | 1525 | 824.1400146484375 |
+| Isaac V2 | Train/mean_episode_length/time | 530 | 824.1400146484375 |
+| Isaac V2 | Train/mean_reward | 1525 | 17667.873046875 |
+| Isaac V2 | Train/mean_reward/time | 530 | 17667.873046875 |
 
 Raw scalar data is stored in `isaac_scalars.csv`.
