@@ -1,0 +1,38 @@
+baseline_name: isaac_v2_mild_upright_controlled_humanoid_direct
+simulator_backend: Isaac Lab
+reward_version: isaac_v2_mild_upright_controlled
+loss_version: isaac_rsl_rl_ppo_default
+reward_design_goal: Encourage cleaner upright forward locomotion without the harsh early termination and penalties used in V1.
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-Direct-v0
+seed: 301
+num_envs: 4096
+total_timesteps: 200000000
+num_steps_per_env: 32
+max_iterations:
+save_interval: 50
+experiment_name: humanoid_direct_single_ppo_v2
+run_name: mild_upright_v2
+output_dir: outputs/isaac_ppo_v2
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+heading_weight: 0.75
+up_weight: 0.25
+energy_cost_scale: 0.06
+actions_cost_scale: 0.015
+alive_reward_scale: 1.5
+dof_vel_scale: 0.1
+death_cost: -2.0
+termination_height: 0.85
+angular_velocity_scale: 0.25
+contact_force_scale: 0.01
+reward_notes:
+  - V2 keeps Isaac Lab physics unchanged and changes reward coefficients only.
+  - V2 is intentionally softer than V1 because V1 over-penalized early falling before balance was learned.
+  - Heading and upright terms are stronger than V0 but not dominant.
+  - Alive reward remains meaningful so the policy has a survival curriculum while learning locomotion.
+  - Termination height and death cost are only mildly stricter than V0.
+hydra_overrides: []

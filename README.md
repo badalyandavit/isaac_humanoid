@@ -21,6 +21,7 @@ configs/
   fair_sac_smoke.yaml
   isaac_ppo_baseline.yaml
   isaac_ppo_v1.yaml
+  isaac_ppo_v2.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -130,12 +131,33 @@ The intent is to reduce the hunched/collapsed walking pattern seen in V0 by
 rewarding upright forward alignment more strongly and penalizing thrashy or
 collapsed locomotion earlier.
 
+The Isaac V2 shaped-reward variant is named:
+
+```text
+isaac_v2_mild_upright_controlled_humanoid_direct
+```
+
+V2 keeps the same simulator and PPO runner, but uses milder shaping than V1 and
+a longer default training budget of `200M` environment steps:
+
+- heading reward weight `0.5 -> 0.75`
+- upright reward weight `0.1 -> 0.25`
+- alive reward scale `2.0 -> 1.5`
+- action cost scale `0.01 -> 0.015`
+- energy cost scale `0.05 -> 0.06`
+- death cost `-1.0 -> -2.0`
+- termination torso height `0.8 -> 0.85`
+
+The intent is to keep V1's cleaner-upright goal but avoid punishing early
+falls so harshly that the policy never learns a stable gait.
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
 bash runpod/setup_isaaclab_runpod.sh
 make isaac-ppo-baseline
 make isaac-ppo-v1
+make isaac-ppo-v2
 ```
 
 The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
@@ -162,6 +184,7 @@ The wrappers write manifests to:
 ```text
 outputs/isaac_ppo_baseline/manifest.json
 outputs/isaac_ppo_v1/manifest.json
+outputs/isaac_ppo_v2/manifest.json
 ```
 
 Isaac Lab writes training TensorBoard event files under:
@@ -170,7 +193,7 @@ Isaac Lab writes training TensorBoard event files under:
 /workspace/IsaacLab/logs/rsl_rl/humanoid_direct/
 ```
 
-Export Isaac V0/V1 scalar logs and learning-curve figures into this repo:
+Export Isaac V0/V1/V2 scalar logs and learning-curve figures into this repo:
 
 ```bash
 make isaac-curves
@@ -192,6 +215,7 @@ Record Isaac videos after training:
 ```bash
 make isaac-video-v0
 make isaac-video-v1
+make isaac-video-v2
 ```
 
 This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
@@ -202,6 +226,7 @@ Outputs:
 ```text
 outputs/videos/isaac_v0_policy.mp4
 outputs/videos/isaac_v1_policy.mp4
+outputs/videos/isaac_v2_policy.mp4
 ```
 
 The video script uses the checkpoint recorded in each Isaac training manifest
@@ -216,6 +241,7 @@ Write the Isaac simulator/reward spec without launching Isaac:
 ```bash
 make isaac-baseline-spec
 make isaac-v1-spec
+make isaac-v2-spec
 ```
 
 Outputs:
@@ -225,6 +251,9 @@ outputs/isaac_ppo_baseline/
   baseline_spec.json
   baseline_spec.md
 outputs/isaac_ppo_v1/
+  baseline_spec.json
+  baseline_spec.md
+outputs/isaac_ppo_v2/
   baseline_spec.json
   baseline_spec.md
 ```

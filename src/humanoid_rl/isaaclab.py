@@ -153,7 +153,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
         "training": {
             "algorithm": "RSL-RL PPO",
             "loss_version": cfg.loss_version,
-            "loss_note": "V1 changes Isaac reward coefficients only; PPO loss is unchanged.",
+            "loss_note": "Isaac shaped variants change reward coefficients only; PPO loss is unchanged.",
             "num_envs": cfg.num_envs,
             "num_steps_per_env": cfg.num_steps_per_env,
             "max_iterations": max_iterations(cfg),
