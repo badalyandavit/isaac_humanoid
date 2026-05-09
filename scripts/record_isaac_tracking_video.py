@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import time
@@ -112,38 +113,43 @@ def patch_play_script(isaaclab_dir: Path) -> Path:
     source = source_path.read_text(encoding="utf-8")
     source_dir = source_path.parent
 
-    def replace_once(text: str, old: str, new: str) -> str:
-        if old not in text:
-            raise RuntimeError(f"Could not patch Isaac Lab play.py; expected snippet not found: {old[:80]!r}")
-        return text.replace(old, new, 1)
+    def sub_once(text: str, pattern: str, repl: str, description: str) -> str:
+        updated, count = re.subn(pattern, repl, text, count=1, flags=re.MULTILINE | re.DOTALL)
+        if count != 1:
+            raise RuntimeError(f"Could not patch Isaac Lab play.py; expected {description} not found.")
+        return updated
 
-    source = replace_once(
+    source = sub_once(
         source,
-        "import sys\nfrom isaaclab.app import AppLauncher",
+        r"import sys\s*from isaaclab\.app import AppLauncher",
         f'import sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path({str(source_dir)!r})))\n'
         "from isaaclab.app import AppLauncher",
+        "import sys followed by AppLauncher import",
     )
-    source = replace_once(
+    source = sub_once(
         source,
-        'parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")',
-        'parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")\n'
+        r'(?P<stmt>^[ \t]*parser\.add_argument\([^\n]*"--video_length"[^\n]*\)\s*\n?)',
+        r'\g<stmt>'
         'parser.add_argument("--camera_tracking", action="store_true", default=False, help="Track env_0 robot with the viewer camera.")\n'
         'parser.add_argument("--camera_distance", type=float, default=5.0, help="Tracking camera distance behind the robot.")\n'
         'parser.add_argument("--camera_lateral", type=float, default=-2.0, help="Tracking camera lateral offset.")\n'
         'parser.add_argument("--camera_height", type=float, default=2.2, help="Tracking camera height above robot root.")\n'
         'parser.add_argument("--camera_lookahead", type=float, default=1.0, help="Tracking camera forward lookahead.")\n'
-        'parser.add_argument("--camera_look_height", type=float, default=0.8, help="Tracking camera look-at height above robot root.")',
+        'parser.add_argument("--camera_look_height", type=float, default=0.8, help="Tracking camera look-at height above robot root.")\n',
+        "--video_length parser argument",
     )
-    source = replace_once(source, "import torch", "import torch" + TRACKING_HELPER)
-    source = replace_once(
+    source = sub_once(source, r"import torch", "import torch" + TRACKING_HELPER, "import torch")
+    source = sub_once(
         source,
-        "    obs = env.get_observations()",
+        r"(?P<indent>[ \t]+)obs = env\.get_observations\(\)",
         "    obs = env.get_observations()\n    _set_tracking_camera(env, args_cli)",
+        "initial observations line",
     )
-    source = replace_once(
+    source = sub_once(
         source,
-        "            obs, _, _, _ = env.step(actions)",
+        r"(?P<indent>[ \t]+)obs, _, _, _ = env\.step\(actions\)",
         "            obs, _, _, _ = env.step(actions)\n            _set_tracking_camera(env, args_cli)",
+        "environment step line",
     )
 
     out_path = isaaclab_dir / "logs" / "rsl_rl" / "_humanoid_tracking_play.py"
