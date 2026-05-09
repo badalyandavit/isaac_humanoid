@@ -18,6 +18,14 @@ outputs/*
 !outputs/single_eval/**
 !outputs/learning_curves/
 !outputs/learning_curves/**
+!outputs/isaac_learning_curves/
+!outputs/isaac_learning_curves/**
+!outputs/isaac_ppo_baseline/
+!outputs/isaac_ppo_baseline/*.json
+!outputs/isaac_ppo_baseline/*.md
+!outputs/isaac_ppo_v1/
+!outputs/isaac_ppo_v1/*.json
+!outputs/isaac_ppo_v1/*.md
 !outputs/videos/
 !outputs/videos/*.mp4
 
