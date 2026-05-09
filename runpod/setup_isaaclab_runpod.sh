@@ -37,6 +37,7 @@ if [[ "${ISAACLAB_USE_SYSTEM_PYTHON}" != "1" && -z "${VIRTUAL_ENV:-}" ]]; then
 fi
 
 python -m pip install --upgrade pip
+python -m pip install --upgrade "setuptools<81" wheel
 
 PIP_CONSTRAINT_ARGS=()
 if [[ "${PRESERVE_TORCH}" == "1" ]]; then
@@ -73,6 +74,7 @@ PY
 fi
 
 python -m pip install --upgrade-strategy only-if-needed --no-cache-dir "${PIP_CONSTRAINT_ARGS[@]}" "isaacsim[all,extscache]==${ISAACSIM_VERSION}" --extra-index-url https://pypi.nvidia.com
+python -m pip install --no-build-isolation "flatdict==4.0.1"
 
 if [[ -e "${ISAACLAB_DIR}" && ! -d "${ISAACLAB_DIR}/.git" ]]; then
   echo "[ERROR] ${ISAACLAB_DIR} exists but is not a git checkout. Move or remove it before setup."
