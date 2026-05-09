@@ -6,6 +6,7 @@
 - `2026-05-09_13-35-58_mild_upright_v2` -> Isaac V2
 - `2026-05-09_13-55-22_tall_upright_v3` -> Isaac V3
 - `2026-05-09_17-11-38_morphology_reward_v4` -> Isaac V4
+- `2026-05-09_17-26-36_anti_jump_morphology_v5` -> Isaac V5
 
 ## Figures
 - [isaac_reward.png](isaac_reward.png)
@@ -20,6 +21,7 @@
 - **Isaac V2**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 - **Isaac V3**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 - **Isaac V4**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
+- **Isaac V5**: Loss/entropy, Loss/learning_rate, Loss/surrogate, Loss/value_function, Perf/collection time, Perf/learning_time, Perf/total_fps, Policy/mean_noise_std, Train/mean_episode_length, Train/mean_episode_length/time, Train/mean_reward, Train/mean_reward/time
 
 ## Latest Scalar Values
 | method | tag | step | value |
@@ -84,5 +86,17 @@
 | Isaac V4 | Train/mean_episode_length/time | 537 | 836.6599731445312 |
 | Isaac V4 | Train/mean_reward | 1525 | 16887.814453125 |
 | Isaac V4 | Train/mean_reward/time | 537 | 16887.814453125 |
+| Isaac V5 | Loss/entropy | 1525 | 1.4284675121307373 |
+| Isaac V5 | Loss/learning_rate | 1525 | 9.999999747378752e-06 |
+| Isaac V5 | Loss/surrogate | 1525 | 0.0006832655053585768 |
+| Isaac V5 | Loss/value_function | 1525 | 5133.7421875 |
+| Isaac V5 | Perf/collection time | 1525 | 0.30011987686157227 |
+| Isaac V5 | Perf/learning_time | 1525 | 0.05384016036987305 |
+| Isaac V5 | Perf/total_fps | 1525 | 370301.0 |
+| Isaac V5 | Policy/mean_noise_std | 1525 | 0.2821643054485321 |
+| Isaac V5 | Train/mean_episode_length | 1525 | 820.280029296875 |
+| Isaac V5 | Train/mean_episode_length/time | 541 | 820.280029296875 |
+| Isaac V5 | Train/mean_reward | 1525 | 13995.548828125 |
+| Isaac V5 | Train/mean_reward/time | 541 | 13995.548828125 |
 
 Raw scalar data is stored in `isaac_scalars.csv`.
