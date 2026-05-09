@@ -237,15 +237,15 @@ def play_command(
 
 def run_training(cfg: IsaacLabPPOConfig, dry_run: bool = False) -> dict[str, Any]:
     output_dir = ensure_dir(cfg.output_dir)
-    log_root = Path(cfg.isaaclab_dir) / "logs" / "rsl_rl" / cfg.experiment_name
-    before = existing_run_dirs(log_root)
+    log_roots = isaac_log_roots(cfg)
+    before = {root: existing_run_dirs(root) for root in log_roots}
     command = train_command(cfg)
     started_at = time.time()
     if not dry_run:
         validate_isaaclab_dir(cfg.isaaclab_dir)
         subprocess.run(command, cwd=cfg.isaaclab_dir, check=True)
     elapsed = time.time() - started_at
-    run_dir = find_new_run_dir(log_root, before, cfg.run_name) if not dry_run else None
+    run_dir = find_isaac_run_dir(cfg, before) if not dry_run else None
     checkpoint = latest_checkpoint(run_dir) if run_dir is not None else None
     manifest = {
         "baseline_name": cfg.baseline_name,
@@ -341,6 +341,45 @@ def existing_run_dirs(log_root: Path) -> set[Path]:
     return {p for p in log_root.iterdir() if p.is_dir()}
 
 
+def isaac_log_roots(cfg: IsaacLabPPOConfig) -> list[Path]:
+    logs_root = Path(cfg.isaaclab_dir) / "logs" / "rsl_rl"
+    roots = [
+        logs_root / cfg.experiment_name,
+        logs_root / "humanoid_direct",
+    ]
+    if logs_root.exists():
+        roots.extend(p for p in logs_root.iterdir() if p.is_dir())
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+    for root in roots:
+        if root not in seen:
+            deduped.append(root)
+            seen.add(root)
+    return deduped
+
+
+def find_isaac_run_dir(
+    cfg: IsaacLabPPOConfig,
+    before_by_root: dict[Path, set[Path]] | None = None,
+) -> Path | None:
+    candidates: list[Path] = []
+    matching: list[Path] = []
+    for root in isaac_log_roots(cfg):
+        before = before_by_root.get(root, set()) if before_by_root else set()
+        if before_by_root is not None:
+            root_candidates = [p for p in existing_run_dirs(root) if p not in before]
+        else:
+            root_candidates = list(existing_run_dirs(root))
+        candidates.extend(root_candidates)
+        matching.extend(p for p in root_candidates if p.name.endswith(f"_{cfg.run_name}"))
+    candidates = matching or candidates
+    if before_by_root is not None and not candidates:
+        return find_isaac_run_dir(cfg, None)
+    if not candidates:
+        return None
+    return max(candidates, key=lambda p: p.stat().st_mtime)
+
+
 def find_new_run_dir(log_root: Path, before: set[Path], run_name: str) -> Path | None:
     if not log_root.exists():
         return None
@@ -377,11 +416,17 @@ def resolve_isaac_checkpoint(cfg: IsaacLabPPOConfig, checkpoint: str | Path | No
     with manifest_path.open("r", encoding="utf-8") as f:
         manifest = json.load(f)
     manifest_checkpoint = manifest.get("checkpoint")
-    if not manifest_checkpoint:
-        raise FileNotFoundError(
-            f"No checkpoint is recorded in {manifest_path}. Run training first or pass --checkpoint."
-        )
-    return Path(manifest_checkpoint)
+    if manifest_checkpoint:
+        return Path(manifest_checkpoint)
+    run_dir = find_isaac_run_dir(cfg)
+    discovered_checkpoint = latest_checkpoint(run_dir)
+    if discovered_checkpoint is not None:
+        return discovered_checkpoint
+    raise FileNotFoundError(
+        f"No checkpoint is recorded in {manifest_path}, and no checkpoint was found under "
+        f"{Path(cfg.isaaclab_dir) / 'logs' / 'rsl_rl'} for run name '{cfg.run_name}'. "
+        "Run training first or pass --checkpoint."
+    )
 
 
 def existing_video_files(video_dir: Path) -> set[Path]:
