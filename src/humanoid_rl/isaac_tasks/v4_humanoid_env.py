@@ -57,8 +57,12 @@ class HumanoidV4EnvCfg(HumanoidEnvCfg):
     soft_single_foot_contact_reward_scale: float = 0.0
     swing_foot_clearance_height: float = 0.26
     swing_foot_clearance_reward_scale: float = 0.0
+    max_swing_foot_height: float = 0.34
+    swing_foot_high_penalty_scale: float = 0.0
     foot_height_difference_target: float = 0.12
     foot_height_difference_reward_scale: float = 0.0
+    max_foot_height_difference: float = 0.28
+    foot_height_difference_penalty_scale: float = 0.0
     step_length_target: float = 0.35
     step_length_reward_scale: float = 0.0
     max_foot_lateral_distance: float = 0.45
@@ -213,6 +217,8 @@ class HumanoidV4Env(HumanoidEnv):
             - foot_contact_terms["double_foot_contact_penalty"]
             - foot_contact_terms["foot_contact_balance_penalty"]
             - foot_contact_terms["foot_lateral_distance_penalty"]
+            - foot_contact_terms["swing_foot_high_penalty"]
+            - foot_contact_terms["foot_height_difference_penalty"]
             - leg_pose_penalty
             - arm_pose_penalty
             - arm_velocity_penalty
@@ -252,6 +258,8 @@ class HumanoidV4Env(HumanoidEnv):
             double_foot_contact_penalty=foot_contact_terms["double_foot_contact_penalty"],
             foot_contact_balance_penalty=foot_contact_terms["foot_contact_balance_penalty"],
             foot_lateral_distance_penalty=foot_contact_terms["foot_lateral_distance_penalty"],
+            swing_foot_high_penalty=foot_contact_terms["swing_foot_high_penalty"],
+            foot_height_difference_penalty=foot_contact_terms["foot_height_difference_penalty"],
             left_foot_contact=foot_contact_terms["left_foot_contact"],
             right_foot_contact=foot_contact_terms["right_foot_contact"],
             step_length=foot_contact_terms["step_length"],
@@ -495,6 +503,8 @@ class HumanoidV4Env(HumanoidEnv):
             "double_foot_contact_penalty": zeros,
             "foot_contact_balance_penalty": zeros,
             "foot_lateral_distance_penalty": zeros,
+            "swing_foot_high_penalty": zeros,
+            "foot_height_difference_penalty": zeros,
             "left_foot_contact": zeros,
             "right_foot_contact": zeros,
             "step_length": zeros,
@@ -557,6 +567,15 @@ class HumanoidV4Env(HumanoidEnv):
                 max=1.0,
             )
         )
+        height_difference_excess = torch.clamp(
+            (foot_height_difference - self.cfg.max_foot_height_difference)
+            / max(1.0e-6, self.cfg.max_foot_height_difference),
+            min=0.0,
+            max=2.0,
+        )
+        foot_height_difference_penalty = (
+            gait_curriculum_scale * self.cfg.foot_height_difference_penalty_scale * height_difference_excess.square()
+        )
         lateral_excess = torch.clamp(foot_lateral_distance - self.cfg.max_foot_lateral_distance, min=0.0)
         foot_lateral_distance_penalty = (
             gait_curriculum_scale * self.cfg.foot_lateral_distance_penalty_scale * lateral_excess.square()
@@ -598,6 +617,15 @@ class HumanoidV4Env(HumanoidEnv):
         swing_foot_clearance_reward = (
             gait_curriculum_scale * self.cfg.swing_foot_clearance_reward_scale * single_contact * swing_clearance
         )
+        swing_height_excess = torch.clamp(
+            (swing_height - self.cfg.max_swing_foot_height)
+            / max(1.0e-6, self.cfg.max_swing_foot_height - self.cfg.foot_contact_height),
+            min=0.0,
+            max=2.0,
+        )
+        swing_foot_high_penalty = (
+            gait_curriculum_scale * self.cfg.swing_foot_high_penalty_scale * single_contact * swing_height_excess.square()
+        )
 
         switched = (
             (self._previous_foot_contact_side >= 0)
@@ -620,6 +648,8 @@ class HumanoidV4Env(HumanoidEnv):
             "double_foot_contact_penalty": double_foot_contact_penalty,
             "foot_contact_balance_penalty": foot_contact_balance_penalty,
             "foot_lateral_distance_penalty": foot_lateral_distance_penalty,
+            "swing_foot_high_penalty": swing_foot_high_penalty,
+            "foot_height_difference_penalty": foot_height_difference_penalty,
             "left_foot_contact": left_contact,
             "right_foot_contact": right_contact,
             "step_length": step_length,

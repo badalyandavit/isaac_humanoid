@@ -1,0 +1,100 @@
+baseline_name: isaac_v11_grounded_gait_reward_humanoid_direct
+simulator_backend: Isaac Lab
+reward_version: isaac_v11_grounded_gait_reward
+loss_version: isaac_rsl_rl_ppo_default
+reward_design_goal: Fix V10's high-knee floating-foot exploit while preserving its reduced lateral drift.
+custom_isaac_task: true
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-V11-Direct-v0
+seed: 301
+num_envs: 4096
+total_timesteps: 200000000
+num_steps_per_env: 32
+max_iterations:
+save_interval: 50
+experiment_name: humanoid_direct_single_ppo_v11
+run_name: grounded_gait_v11
+output_dir: outputs/isaac_ppo_v11
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+heading_weight: 1.0
+up_weight: 0.9
+energy_cost_scale: 0.09
+actions_cost_scale: 0.030
+alive_reward_scale: 0.95
+dof_vel_scale: 0.1
+death_cost: -4.0
+termination_height: 0.95
+angular_velocity_scale: 0.25
+contact_force_scale: 0.01
+height_target: 1.27
+height_bonus_scale: 0.0
+height_tracking_penalty_scale: 2.0
+low_height_threshold: 1.10
+low_height_penalty_scale: 3.2
+high_height_threshold: 1.44
+high_height_penalty_scale: 5.5
+torso_low_height: 1.04
+torso_low_penalty_scale: 2.5
+arm_low_height: 0.70
+arm_low_penalty_scale: 4.0
+leg_pose_penalty_scale: 0.32
+arm_pose_penalty_scale: 2.0
+action_rate_penalty_scale: 0.085
+vertical_velocity_penalty_scale: 2.2
+arm_action_penalty_scale: 0.85
+arm_velocity_penalty_scale: 0.035
+leg_action_symmetry_penalty_scale: 0.14
+leg_pose_symmetry_penalty_scale: 0.08
+non_foot_low_height: 0.65
+non_foot_low_penalty_scale: 4.0
+foot_air_height: 0.22
+foot_air_penalty_scale: 0.45
+foot_slip_height: 0.18
+foot_slip_penalty_scale: 0.30
+target_forward_velocity: 1.00
+forward_velocity_reward_scale: 1.20
+forward_velocity_sigma: 0.55
+forward_velocity_tracking_penalty_scale: 0.22
+max_forward_velocity: 1.35
+high_forward_velocity_penalty_scale: 1.20
+lateral_velocity_penalty_scale: 1.00
+low_speed_threshold: 0.50
+low_speed_vertical_penalty_scale: 3.0
+arm_high_height: 1.42
+arm_high_penalty_scale: 8.0
+foot_contact_height: 0.17
+foot_contact_force_threshold: 1.0
+single_foot_contact_reward_scale: 0.08
+foot_contact_switch_reward_scale: 0.08
+no_foot_contact_penalty_scale: 1.05
+double_foot_contact_penalty_scale: 0.10
+foot_contact_balance_penalty_scale: 2.60
+foot_contact_ema_decay: 0.97
+foot_contact_transition_reward_scale: 0.14
+foot_contact_transition_target: 0.30
+soft_single_foot_contact_reward_scale: 0.12
+swing_foot_clearance_height: 0.23
+swing_foot_clearance_reward_scale: 0.03
+max_swing_foot_height: 0.30
+swing_foot_high_penalty_scale: 1.50
+foot_height_difference_target: 0.08
+foot_height_difference_reward_scale: 0.00
+max_foot_height_difference: 0.24
+foot_height_difference_penalty_scale: 2.50
+step_length_target: 0.24
+step_length_reward_scale: 0.05
+max_foot_lateral_distance: 0.40
+foot_lateral_distance_penalty_scale: 0.25
+gait_curriculum_steps: 24000.0
+gait_curriculum_start: 0.20
+reward_notes:
+  - V11 targets the V10 failure mode where one foot floated high while the other foot carried most contact.
+  - It adds explicit penalties for excessive swing-foot height and excessive left/right foot-height difference.
+  - It sharply reduces single-foot and soft single-support rewards so one-legged shuffling is less attractive.
+  - It keeps V10's stronger lateral-drift control but relaxes gait rewards that encouraged high-knee motion.
+  - It increases arm-high and arm-pose penalties because V10 paired the floating-foot exploit with a raised-arm pose.
+hydra_overrides: []

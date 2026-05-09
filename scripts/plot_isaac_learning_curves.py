@@ -72,6 +72,8 @@ def parse_args() -> argparse.Namespace:
 
 def run_label(run_dir: Path) -> str:
     name = run_dir.name
+    if name.endswith("_grounded_gait_v11"):
+        return "Isaac V11"
     if name.endswith("_balanced_gait_v10"):
         return "Isaac V10"
     if name.endswith("_curriculum_gait_v9"):

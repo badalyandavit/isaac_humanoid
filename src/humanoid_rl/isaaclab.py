@@ -77,8 +77,12 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "soft_single_foot_contact_reward_scale": 0.0,
     "swing_foot_clearance_height": 0.26,
     "swing_foot_clearance_reward_scale": 0.0,
+    "max_swing_foot_height": 0.34,
+    "swing_foot_high_penalty_scale": 0.0,
     "foot_height_difference_target": 0.12,
     "foot_height_difference_reward_scale": 0.0,
+    "max_foot_height_difference": 0.28,
+    "foot_height_difference_penalty_scale": 0.0,
     "step_length_target": 0.35,
     "step_length_reward_scale": 0.0,
     "max_foot_lateral_distance": 0.45,
@@ -183,9 +187,17 @@ class IsaacLabPPOConfig:
     swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "swing_foot_clearance_reward_scale"
     ]
+    max_swing_foot_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_swing_foot_height"]
+    swing_foot_high_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "swing_foot_high_penalty_scale"
+    ]
     foot_height_difference_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_height_difference_target"]
     foot_height_difference_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "foot_height_difference_reward_scale"
+    ]
+    max_foot_height_difference: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_foot_height_difference"]
+    foot_height_difference_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_height_difference_penalty_scale"
     ]
     step_length_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_target"]
     step_length_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_reward_scale"]
@@ -317,6 +329,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "soft foot-contact transition reward",
                     "soft single-support and foot-height-difference rewards",
                     "swing-foot clearance and step-length rewards",
+                    "excess swing-foot and foot-height-difference penalties",
                     "foot lateral spread penalty",
                     "optional curriculum ramp for gait/contact shaping",
                     "custom reward diagnostics under extras['log']",
