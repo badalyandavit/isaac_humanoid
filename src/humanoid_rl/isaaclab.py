@@ -234,7 +234,7 @@ def reward_parameter_changes(cfg: IsaacLabPPOConfig) -> dict[str, dict[str, floa
 def reward_hydra_overrides(cfg: IsaacLabPPOConfig) -> list[str]:
     overrides = [f"env.{key}={change['configured']}" for key, change in reward_parameter_changes(cfg).items()]
     if cfg.custom_isaac_task:
-        overrides.extend(f"env.{key}={getattr(cfg, key)}" for key in ISAAC_HUMANOID_V4_REWARD_DEFAULTS)
+        overrides.extend(f"env.{key}={float(getattr(cfg, key))}" for key in ISAAC_HUMANOID_V4_REWARD_DEFAULTS)
     return overrides
 
 

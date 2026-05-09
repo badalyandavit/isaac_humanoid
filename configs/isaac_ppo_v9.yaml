@@ -85,7 +85,7 @@ step_length_target: 0.28
 step_length_reward_scale: 0.12
 max_foot_lateral_distance: 0.42
 foot_lateral_distance_penalty_scale: 0.20
-gait_curriculum_steps: 18000
+gait_curriculum_steps: 18000.0
 gait_curriculum_start: 0.25
 reward_notes:
   - V9 addresses the V8 regression where hard step-transition shaping collapsed episode length and exploration.

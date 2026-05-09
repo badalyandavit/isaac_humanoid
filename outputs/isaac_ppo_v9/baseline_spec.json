@@ -214,7 +214,7 @@
       "env.step_length_reward_scale=0.12",
       "env.max_foot_lateral_distance=0.42",
       "env.foot_lateral_distance_penalty_scale=0.2",
-      "env.gait_curriculum_steps=18000",
+      "env.gait_curriculum_steps=18000.0",
       "env.gait_curriculum_start=0.25"
     ],
     "custom_v4_reward_terms": [
