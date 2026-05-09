@@ -88,7 +88,8 @@ Treat this as a simulator-backend extension. It uses
 should be reported separately from Gymnasium/MuJoCo `Humanoid-v5`.
 
 The RunPod Isaac setup installs Isaac Sim `5.1.0` and Isaac Lab `v2.3.0` in a
-Python 3.11 environment.
+Python 3.11 environment under `/workspace/isaaclab_env` so large packages do
+not fill the small container overlay filesystem.
 
 Report the Isaac V0 baseline as:
 

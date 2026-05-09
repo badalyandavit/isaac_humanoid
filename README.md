@@ -147,6 +147,9 @@ rm -rf /workspace/IsaacLab
 bash runpod/setup_isaaclab_runpod.sh
 ```
 
+The script creates `/workspace/isaaclab_env` and uses `/workspace/tmp` so the
+large Isaac packages do not fill the small container overlay filesystem.
+
 The wrappers write manifests to:
 
 ```text

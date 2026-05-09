@@ -4,6 +4,9 @@ set -euo pipefail
 ISAACLAB_DIR=${ISAACLAB_DIR:-/workspace/IsaacLab}
 ISAACLAB_REF=${ISAACLAB_REF:-v2.3.0}
 ISAACSIM_VERSION=${ISAACSIM_VERSION:-5.1.0}
+ISAACLAB_VENV=${ISAACLAB_VENV:-/workspace/isaaclab_env}
+WORKSPACE_TMP=${WORKSPACE_TMP:-/workspace/tmp}
+PIP_CACHE_DIR=${PIP_CACHE_DIR:-/workspace/pip-cache}
 
 python3 - <<'PY'
 import sys
@@ -16,9 +19,23 @@ PY
 
 apt-get update
 apt-get install -y --no-install-recommends git build-essential cmake ninja-build ffmpeg tmux
+apt-get clean
+rm -rf /var/lib/apt/lists/*
 
-python3 -m pip install --upgrade pip
-python3 -m pip install "isaacsim[all,extscache]==${ISAACSIM_VERSION}" --extra-index-url https://pypi.nvidia.com
+mkdir -p "${WORKSPACE_TMP}" "${PIP_CACHE_DIR}"
+export TMPDIR="${WORKSPACE_TMP}"
+export PIP_CACHE_DIR
+
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+  if [[ ! -x "${ISAACLAB_VENV}/bin/python" ]]; then
+    python3 -m venv "${ISAACLAB_VENV}"
+  fi
+  # shellcheck disable=SC1091
+  source "${ISAACLAB_VENV}/bin/activate"
+fi
+
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir "isaacsim[all,extscache]==${ISAACSIM_VERSION}" --extra-index-url https://pypi.nvidia.com
 
 if [[ -e "${ISAACLAB_DIR}" && ! -d "${ISAACLAB_DIR}/.git" ]]; then
   echo "[ERROR] ${ISAACLAB_DIR} exists but is not a git checkout. Move or remove it before setup."
