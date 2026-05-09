@@ -11,7 +11,7 @@ ISAAC_VIDEO_OUT ?= outputs/videos/isaac_policy.mp4
 ISAAC_VIDEO_MAX_STEPS ?= 500
 ISAAC_VIDEO_NUM_ENVS ?= 1
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-baseline-spec isaac-v1-spec eval single-eval curves video isaac-video isaac-video-v0 isaac-video-v1
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-baseline-spec isaac-v1-spec eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -45,6 +45,9 @@ single-eval:
 
 curves:
 	$(PYTHON) scripts/plot_learning_curves.py --out-dir outputs/learning_curves
+
+isaac-curves:
+	$(PYTHON) scripts/plot_isaac_learning_curves.py --out-dir outputs/isaac_learning_curves
 
 video:
 	$(PYTHON) scripts/record_video.py --config $(VIDEO_CONFIG) --checkpoint $(VIDEO_CHECKPOINT) --out $(VIDEO_OUT) --max-steps $(VIDEO_MAX_STEPS)

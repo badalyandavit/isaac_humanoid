@@ -79,6 +79,7 @@ make isaac-baseline-spec
 make isaac-ppo-baseline
 make isaac-v1-spec
 make isaac-ppo-v1
+make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
 ```
@@ -142,3 +143,13 @@ outputs/videos/isaac_v1_policy.mp4
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must
 be available in the Isaac environment.
+
+Isaac learning curves are exported from TensorBoard event files in
+`/workspace/IsaacLab/logs/rsl_rl/humanoid_direct/` to:
+
+```text
+outputs/isaac_learning_curves/
+  isaac_scalars.csv
+  report.md
+  *.png
+```

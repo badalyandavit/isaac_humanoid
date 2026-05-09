@@ -27,6 +27,7 @@ scripts/
   train_isaac_ppo_baseline.py
   write_isaac_baseline_spec.py
   record_isaac_video.py
+  plot_isaac_learning_curves.py
   evaluate_single.py
   plot_learning_curves.py
   record_video.py
@@ -161,6 +162,29 @@ The wrappers write manifests to:
 ```text
 outputs/isaac_ppo_baseline/manifest.json
 outputs/isaac_ppo_v1/manifest.json
+```
+
+Isaac Lab writes training TensorBoard event files under:
+
+```text
+/workspace/IsaacLab/logs/rsl_rl/humanoid_direct/
+```
+
+Export Isaac V0/V1 scalar logs and learning-curve figures into this repo:
+
+```bash
+make isaac-curves
+```
+
+Outputs:
+
+```text
+outputs/isaac_learning_curves/
+  isaac_scalars.csv
+  isaac_reward.png
+  isaac_episode_length.png
+  isaac_losses.png
+  report.md
 ```
 
 Record Isaac videos after training:
