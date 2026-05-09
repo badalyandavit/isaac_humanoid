@@ -95,9 +95,10 @@ if [[ "${PRESERVE_TORCH}" != "1" ]]; then
   python -m pip install --index-url "${PYTORCH_CUDA_INDEX}" "torch==2.7.0" "torchvision==0.22.0" "torchaudio==2.7.0"
 fi
 python -m pip install "packaging==23.0" "click==8.1.7" "typer<0.17"
-./isaaclab.sh -p - <<'PY'
-import gymnasium as gym
-import isaaclab_tasks  # noqa: F401
-print("Isaac Lab task import OK")
-print("Humanoid registered:", "Isaac-Humanoid-Direct-v0" in gym.registry)
+python - <<'PY'
+from importlib import metadata
+
+for package in ("isaacsim", "isaaclab", "isaaclab_assets", "isaaclab_tasks", "isaaclab_rl"):
+    print(f"{package}: {metadata.version(package)}")
+print("Isaac package metadata OK. Runtime is validated when training launches SimulationApp.")
 PY
