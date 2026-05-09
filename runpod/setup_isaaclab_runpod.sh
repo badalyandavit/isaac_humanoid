@@ -5,6 +5,8 @@ ISAACLAB_DIR=${ISAACLAB_DIR:-/workspace/IsaacLab}
 ISAACLAB_REF=${ISAACLAB_REF:-v2.3.0}
 ISAACSIM_VERSION=${ISAACSIM_VERSION:-5.1.0}
 ISAACLAB_VENV=${ISAACLAB_VENV:-/workspace/isaaclab_env}
+ISAACLAB_USE_SYSTEM_PYTHON=${ISAACLAB_USE_SYSTEM_PYTHON:-0}
+PRESERVE_TORCH=${PRESERVE_TORCH:-1}
 WORKSPACE_TMP=${WORKSPACE_TMP:-/workspace/tmp}
 PIP_CACHE_DIR=${PIP_CACHE_DIR:-/workspace/pip-cache}
 
@@ -26,7 +28,7 @@ mkdir -p "${WORKSPACE_TMP}" "${PIP_CACHE_DIR}"
 export TMPDIR="${WORKSPACE_TMP}"
 export PIP_CACHE_DIR
 
-if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+if [[ "${ISAACLAB_USE_SYSTEM_PYTHON}" != "1" && -z "${VIRTUAL_ENV:-}" ]]; then
   if [[ ! -x "${ISAACLAB_VENV}/bin/python" ]]; then
     python3 -m venv "${ISAACLAB_VENV}"
   fi
@@ -35,7 +37,42 @@ if [[ -z "${VIRTUAL_ENV:-}" ]]; then
 fi
 
 python -m pip install --upgrade pip
-python -m pip install --no-cache-dir "isaacsim[all,extscache]==${ISAACSIM_VERSION}" --extra-index-url https://pypi.nvidia.com
+
+PIP_CONSTRAINT_ARGS=()
+if [[ "${PRESERVE_TORCH}" == "1" ]]; then
+  TORCH_CONSTRAINTS="${WORKSPACE_TMP}/torch_constraints.txt"
+  python - "${TORCH_CONSTRAINTS}" <<'PY'
+from __future__ import annotations
+
+import importlib.util
+import sys
+from importlib import metadata
+from pathlib import Path
+
+constraints_path = Path(sys.argv[1])
+packages = ("torch", "torchvision", "torchaudio")
+constraints: list[str] = []
+for package in packages:
+    if importlib.util.find_spec(package) is None:
+        continue
+    try:
+        version = metadata.version(package)
+    except metadata.PackageNotFoundError:
+        continue
+    constraints.append(f"{package}=={version}")
+
+constraints_path.write_text("\n".join(constraints) + ("\n" if constraints else ""), encoding="utf-8")
+if constraints:
+    print("[INFO] Preserving existing Torch package versions:")
+    for constraint in constraints:
+        print(f"  {constraint}")
+PY
+  if [[ -s "${TORCH_CONSTRAINTS}" ]]; then
+    PIP_CONSTRAINT_ARGS=(-c "${TORCH_CONSTRAINTS}")
+  fi
+fi
+
+python -m pip install --upgrade-strategy only-if-needed --no-cache-dir "${PIP_CONSTRAINT_ARGS[@]}" "isaacsim[all,extscache]==${ISAACSIM_VERSION}" --extra-index-url https://pypi.nvidia.com
 
 if [[ -e "${ISAACLAB_DIR}" && ! -d "${ISAACLAB_DIR}/.git" ]]; then
   echo "[ERROR] ${ISAACLAB_DIR} exists but is not a git checkout. Move or remove it before setup."

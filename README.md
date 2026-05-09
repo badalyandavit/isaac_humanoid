@@ -149,6 +149,12 @@ bash runpod/setup_isaaclab_runpod.sh
 
 The script creates `/workspace/isaaclab_env` and uses `/workspace/tmp` so the
 large Isaac packages do not fill the small container overlay filesystem.
+On a fresh Isaac-only pod with enough root storage, set
+`ISAACLAB_USE_SYSTEM_PYTHON=1` to install into the current Python environment
+instead. By default, the setup preserves already-installed `torch`,
+`torchvision`, and `torchaudio` versions using pip constraints; set
+`PRESERVE_TORCH=0` only if you want Isaac Sim to choose different Torch
+packages.
 
 The wrappers write manifests to:
 

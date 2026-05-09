@@ -89,7 +89,9 @@ should be reported separately from Gymnasium/MuJoCo `Humanoid-v5`.
 
 The RunPod Isaac setup installs Isaac Sim `5.1.0` and Isaac Lab `v2.3.0` in a
 Python 3.11 environment under `/workspace/isaaclab_env` so large packages do
-not fill the small container overlay filesystem.
+not fill the small container overlay filesystem. On fresh Isaac-only pods, set
+`ISAACLAB_USE_SYSTEM_PYTHON=1` to install into the current Python environment.
+The setup preserves existing Torch package versions by default.
 
 Report the Isaac V0 baseline as:
 
