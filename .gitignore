@@ -47,6 +47,9 @@ outputs/*
 !outputs/isaac_ppo_v8/
 !outputs/isaac_ppo_v8/*.json
 !outputs/isaac_ppo_v8/*.md
+!outputs/isaac_ppo_v9/
+!outputs/isaac_ppo_v9/*.json
+!outputs/isaac_ppo_v9/*.md
 !outputs/videos/
 !outputs/videos/*.mp4
 

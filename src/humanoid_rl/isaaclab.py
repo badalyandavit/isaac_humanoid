@@ -74,12 +74,17 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "foot_contact_ema_decay": 0.98,
     "foot_contact_transition_reward_scale": 0.0,
     "foot_contact_transition_target": 0.35,
+    "soft_single_foot_contact_reward_scale": 0.0,
     "swing_foot_clearance_height": 0.26,
     "swing_foot_clearance_reward_scale": 0.0,
+    "foot_height_difference_target": 0.12,
+    "foot_height_difference_reward_scale": 0.0,
     "step_length_target": 0.35,
     "step_length_reward_scale": 0.0,
     "max_foot_lateral_distance": 0.45,
     "foot_lateral_distance_penalty_scale": 0.0,
+    "gait_curriculum_steps": 0.0,
+    "gait_curriculum_start": 1.0,
 }
 
 
@@ -171,9 +176,16 @@ class IsaacLabPPOConfig:
         "foot_contact_transition_reward_scale"
     ]
     foot_contact_transition_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_transition_target"]
+    soft_single_foot_contact_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "soft_single_foot_contact_reward_scale"
+    ]
     swing_foot_clearance_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["swing_foot_clearance_height"]
     swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "swing_foot_clearance_reward_scale"
+    ]
+    foot_height_difference_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_height_difference_target"]
+    foot_height_difference_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_height_difference_reward_scale"
     ]
     step_length_target: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_target"]
     step_length_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["step_length_reward_scale"]
@@ -181,6 +193,8 @@ class IsaacLabPPOConfig:
     foot_lateral_distance_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "foot_lateral_distance_penalty_scale"
     ]
+    gait_curriculum_steps: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["gait_curriculum_steps"]
+    gait_curriculum_start: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["gait_curriculum_start"]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -301,8 +315,10 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "feet airborne and foot-slip proxy penalties",
                     "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
                     "soft foot-contact transition reward",
+                    "soft single-support and foot-height-difference rewards",
                     "swing-foot clearance and step-length rewards",
                     "foot lateral spread penalty",
+                    "optional curriculum ramp for gait/contact shaping",
                     "custom reward diagnostics under extras['log']",
                 ]
                 if cfg.custom_isaac_task
