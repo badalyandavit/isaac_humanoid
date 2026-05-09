@@ -89,6 +89,8 @@ make isaac-v5-spec
 make isaac-ppo-v5
 make isaac-v6-spec
 make isaac-ppo-v6
+make isaac-v7-spec
+make isaac-ppo-v7
 make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
@@ -97,6 +99,7 @@ make isaac-video-v3
 make isaac-video-v4
 make isaac-video-v5
 make isaac-video-v6
+make isaac-video-v7
 make isaac-video-track-v0
 make isaac-video-track-v1
 make isaac-video-track-v2
@@ -104,6 +107,7 @@ make isaac-video-track-v3
 make isaac-video-track-v4
 make isaac-video-track-v5
 make isaac-video-track-v6
+make isaac-video-track-v7
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -248,6 +252,22 @@ direct humanoid task does not define explicit contact sensors.
 
 Report V6 as the diagnostic gait-quality follow-up to V5.
 
+Report the Isaac V7 custom-reward variant as:
+
+```text
+isaac_v7_contact_gait_reward_humanoid_direct
+```
+
+V7 uses the same custom Isaac task module as V4/V5/V6, but it moves from
+generic anti-crawl penalties to gait-structure shaping. It adds target
+forward-velocity reward, lateral drift penalty, a low-speed vertical-bounce
+penalty, an arm-high penalty for the V6 overhead-arm exploit, and foot-contact
+terms for single-foot support, foot switching, no-contact, double-contact, and
+left/right foot-contact balance. It uses Isaac body contact forces when
+available and falls back to foot-height contact proxies otherwise.
+
+Report V7 as the contact/gait follow-up to V6.
+
 The Isaac video targets use the checkpoint saved in each training manifest and
 copy the recorded MP4s to:
 
@@ -259,6 +279,7 @@ outputs/videos/isaac_v3_policy.mp4
 outputs/videos/isaac_v4_policy.mp4
 outputs/videos/isaac_v5_policy.mp4
 outputs/videos/isaac_v6_policy.mp4
+outputs/videos/isaac_v7_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
@@ -266,6 +287,7 @@ outputs/videos/isaac_v3_policy_tracked.mp4
 outputs/videos/isaac_v4_policy_tracked.mp4
 outputs/videos/isaac_v5_policy_tracked.mp4
 outputs/videos/isaac_v6_policy_tracked.mp4
+outputs/videos/isaac_v7_policy_tracked.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must

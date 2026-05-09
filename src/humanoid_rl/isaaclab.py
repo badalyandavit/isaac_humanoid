@@ -53,6 +53,22 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "foot_air_penalty_scale": 0.0,
     "foot_slip_height": 0.16,
     "foot_slip_penalty_scale": 0.0,
+    "target_forward_velocity": 0.0,
+    "forward_velocity_reward_scale": 0.0,
+    "forward_velocity_sigma": 0.6,
+    "lateral_velocity_penalty_scale": 0.0,
+    "low_speed_threshold": 0.5,
+    "low_speed_vertical_penalty_scale": 0.0,
+    "arm_high_height": 1.55,
+    "arm_high_penalty_scale": 0.0,
+    "foot_contact_height": 0.14,
+    "foot_contact_force_threshold": 1.0,
+    "single_foot_contact_reward_scale": 0.0,
+    "foot_contact_switch_reward_scale": 0.0,
+    "no_foot_contact_penalty_scale": 0.0,
+    "double_foot_contact_penalty_scale": 0.0,
+    "foot_contact_balance_penalty_scale": 0.0,
+    "foot_contact_ema_decay": 0.98,
 }
 
 
@@ -115,6 +131,24 @@ class IsaacLabPPOConfig:
     foot_air_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_penalty_scale"]
     foot_slip_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_height"]
     foot_slip_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_penalty_scale"]
+    target_forward_velocity: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["target_forward_velocity"]
+    forward_velocity_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_reward_scale"]
+    forward_velocity_sigma: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_sigma"]
+    lateral_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["lateral_velocity_penalty_scale"]
+    low_speed_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_speed_threshold"]
+    low_speed_vertical_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_speed_vertical_penalty_scale"]
+    arm_high_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_high_height"]
+    arm_high_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_high_penalty_scale"]
+    foot_contact_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_height"]
+    foot_contact_force_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_force_threshold"]
+    single_foot_contact_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["single_foot_contact_reward_scale"]
+    foot_contact_switch_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_switch_reward_scale"]
+    no_foot_contact_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["no_foot_contact_penalty_scale"]
+    double_foot_contact_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["double_foot_contact_penalty_scale"]
+    foot_contact_balance_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "foot_contact_balance_penalty_scale"
+    ]
+    foot_contact_ema_decay: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_ema_decay"]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -219,15 +253,20 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "high torso/root height penalty to discourage hopping",
                     "low torso/pelvis/head body penalty",
                     "low arm/hand body penalty as a proxy for arm-supported crawling",
+                    "high arm/hand body penalty to discourage raised-arm balance exploits",
                     "leg joint pose penalty to discourage deep crouch",
                     "arm joint pose penalty to discourage arm-driven locomotion",
                     "arm action magnitude penalty to discourage arm-driven locomotion",
                     "arm joint velocity penalty",
                     "leg action and pose symmetry penalties",
+                    "target forward velocity reward",
+                    "lateral velocity penalty",
+                    "low-speed vertical bounce penalty",
                     "action-rate penalty for smoother motion",
                     "vertical velocity penalty to discourage bouncing",
                     "non-foot low-body proxy penalty",
                     "feet airborne and foot-slip proxy penalties",
+                    "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
                     "custom reward diagnostics under extras['log']",
                 ]
                 if cfg.custom_isaac_task
