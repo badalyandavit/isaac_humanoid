@@ -8,7 +8,7 @@
   "source_video": "/workspace/IsaacLab/logs/rsl_rl/humanoid_direct/2026-05-09_13-55-22_tall_upright_v3/videos/play/rl-video-step-0.mp4",
   "copied_video": "outputs/videos/isaac_v3_policy_tracked.mp4",
   "num_envs": 1,
-  "video_length": 180,
+  "video_length": 600,
   "camera": {
     "distance": 5.0,
     "lateral": -2.0,
@@ -16,7 +16,7 @@
     "lookahead": 1.0,
     "look_height": 0.8
   },
-  "elapsed_seconds": 24.2978572845459,
+  "elapsed_seconds": 34.69382119178772,
   "command": [
     "/workspace/IsaacLab/isaaclab.sh",
     "-p",
@@ -31,7 +31,7 @@
     "cuda:0",
     "--video",
     "--video_length",
-    "180",
+    "600",
     "--camera_tracking",
     "--camera_distance",
     "5.0",
