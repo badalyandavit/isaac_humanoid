@@ -74,6 +74,7 @@ Include at least:
 The repo includes separate single-agent Isaac Lab PPO variants:
 
 ```bash
+bash runpod/setup_isaaclab_runpod.sh
 make isaac-baseline-spec
 make isaac-ppo-baseline
 make isaac-v1-spec
@@ -85,6 +86,9 @@ make isaac-video-v1
 Treat this as a simulator-backend extension. It uses
 `Isaac-Humanoid-Direct-v0` and the Isaac Lab RSL-RL PPO runner, so its scores
 should be reported separately from Gymnasium/MuJoCo `Humanoid-v5`.
+
+The RunPod Isaac setup installs Isaac Sim `5.1.0` and Isaac Lab `v2.3.0` in a
+Python 3.11 environment.
 
 Report the Isaac V0 baseline as:
 

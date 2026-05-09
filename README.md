@@ -137,6 +137,16 @@ make isaac-ppo-baseline
 make isaac-ppo-v1
 ```
 
+The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
+pins Isaac Lab to `v2.3.0`, which matches the Python 3.11 requirement. If you
+already have an Isaac Lab checkout from a failed attempt, remove it before
+rerunning the setup:
+
+```bash
+rm -rf /workspace/IsaacLab
+bash runpod/setup_isaaclab_runpod.sh
+```
+
 The wrappers write manifests to:
 
 ```text
