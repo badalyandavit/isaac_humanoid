@@ -25,7 +25,11 @@ import gymnasium as gym
 from . import agents
 from .humanoid_v4_env import HumanoidV4Env, HumanoidV4EnvCfg
 
-for _humanoid_rl_task_id in ("Isaac-Humanoid-V4-Direct-v0", "Isaac-Humanoid-V5-Direct-v0"):
+for _humanoid_rl_task_id in (
+    "Isaac-Humanoid-V4-Direct-v0",
+    "Isaac-Humanoid-V5-Direct-v0",
+    "Isaac-Humanoid-V6-Direct-v0",
+):
     gym.register(
         id=_humanoid_rl_task_id,
         entry_point=f"{{__name__}}.humanoid_v4_env:HumanoidV4Env",

@@ -25,6 +25,7 @@ configs/
   isaac_ppo_v3.yaml
   isaac_ppo_v4.yaml
   isaac_ppo_v5.yaml
+  isaac_ppo_v6.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -219,6 +220,25 @@ bonus. It instead treats height as a bounded constraint:
 The intent is to fix the V4 jump/hop exploit without returning to the V2/V3
 crawling exploit.
 
+The Isaac V6 diagnostic gait-reward variant is named:
+
+```text
+isaac_v6_diagnostic_gait_reward_humanoid_direct
+```
+
+V6 uses the same custom task module as V4/V5 and adds the next set of terms
+for the remaining V5 failure mode:
+
+- TensorBoard diagnostics for custom reward terms under `custom/*`
+- arm action magnitude penalty
+- arm joint velocity penalty
+- leg action and pose symmetry penalties
+- non-foot low-body penalty
+- feet-airborne and foot-slip proxy penalties
+
+The direct humanoid task does not define explicit contact sensors, so V6 uses
+body-height and foot-velocity proxies for contact-like behavior.
+
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
 
 ```bash
@@ -229,6 +249,7 @@ make isaac-ppo-v2
 make isaac-ppo-v3
 make isaac-ppo-v4
 make isaac-ppo-v5
+make isaac-ppo-v6
 ```
 
 The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
@@ -259,6 +280,7 @@ outputs/isaac_ppo_v2/manifest.json
 outputs/isaac_ppo_v3/manifest.json
 outputs/isaac_ppo_v4/manifest.json
 outputs/isaac_ppo_v5/manifest.json
+outputs/isaac_ppo_v6/manifest.json
 ```
 
 Isaac Lab writes training TensorBoard event files under:
@@ -267,7 +289,7 @@ Isaac Lab writes training TensorBoard event files under:
 /workspace/IsaacLab/logs/rsl_rl/humanoid_direct/
 ```
 
-Export Isaac V0/V1/V2/V3/V4/V5 scalar logs and learning-curve figures into this repo:
+Export Isaac V0/V1/V2/V3/V4/V5/V6 scalar logs and learning-curve figures into this repo:
 
 ```bash
 make isaac-curves
@@ -293,6 +315,7 @@ make isaac-video-v2
 make isaac-video-v3
 make isaac-video-v4
 make isaac-video-v5
+make isaac-video-v6
 ```
 
 This uses Isaac Lab's RSL-RL `play.py --video` flow and requires `ffmpeg` in
@@ -308,6 +331,7 @@ make isaac-video-track-v2
 make isaac-video-track-v3
 make isaac-video-track-v4
 make isaac-video-track-v5
+make isaac-video-track-v6
 ```
 
 The tracked-camera recorder creates a temporary patched copy of Isaac Lab's
@@ -324,12 +348,14 @@ outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
 outputs/videos/isaac_v4_policy.mp4
 outputs/videos/isaac_v5_policy.mp4
+outputs/videos/isaac_v6_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
 outputs/videos/isaac_v3_policy_tracked.mp4
 outputs/videos/isaac_v4_policy_tracked.mp4
 outputs/videos/isaac_v5_policy_tracked.mp4
+outputs/videos/isaac_v6_policy_tracked.mp4
 ```
 
 The video script uses the checkpoint recorded in each Isaac training manifest
@@ -348,6 +374,7 @@ make isaac-v2-spec
 make isaac-v3-spec
 make isaac-v4-spec
 make isaac-v5-spec
+make isaac-v6-spec
 ```
 
 Outputs:
@@ -369,6 +396,9 @@ outputs/isaac_ppo_v4/
   baseline_spec.json
   baseline_spec.md
 outputs/isaac_ppo_v5/
+  baseline_spec.json
+  baseline_spec.md
+outputs/isaac_ppo_v6/
   baseline_spec.json
   baseline_spec.md
 ```

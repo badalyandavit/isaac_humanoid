@@ -87,6 +87,8 @@ make isaac-v4-spec
 make isaac-ppo-v4
 make isaac-v5-spec
 make isaac-ppo-v5
+make isaac-v6-spec
+make isaac-ppo-v6
 make isaac-curves
 make isaac-video-v0
 make isaac-video-v1
@@ -94,12 +96,14 @@ make isaac-video-v2
 make isaac-video-v3
 make isaac-video-v4
 make isaac-video-v5
+make isaac-video-v6
 make isaac-video-track-v0
 make isaac-video-track-v1
 make isaac-video-track-v2
 make isaac-video-track-v3
 make isaac-video-track-v4
 make isaac-video-track-v5
+make isaac-video-track-v6
 ```
 
 Treat this as a simulator-backend extension. It uses
@@ -230,6 +234,20 @@ arm-low and arm-pose penalties to discourage spider/crawling locomotion.
 
 Report V5 as the anti-jump follow-up to V4.
 
+Report the Isaac V6 custom-reward variant as:
+
+```text
+isaac_v6_diagnostic_gait_reward_humanoid_direct
+```
+
+V6 uses the same custom Isaac task module as V4/V5. It adds reward-term
+diagnostics under `custom/*`, arm action and velocity penalties, leg symmetry
+penalties, non-foot low-body penalties, and foot-air/foot-slip proxy penalties.
+The foot terms are proxies based on body height and foot velocity because this
+direct humanoid task does not define explicit contact sensors.
+
+Report V6 as the diagnostic gait-quality follow-up to V5.
+
 The Isaac video targets use the checkpoint saved in each training manifest and
 copy the recorded MP4s to:
 
@@ -240,12 +258,14 @@ outputs/videos/isaac_v2_policy.mp4
 outputs/videos/isaac_v3_policy.mp4
 outputs/videos/isaac_v4_policy.mp4
 outputs/videos/isaac_v5_policy.mp4
+outputs/videos/isaac_v6_policy.mp4
 outputs/videos/isaac_v0_policy_tracked.mp4
 outputs/videos/isaac_v1_policy_tracked.mp4
 outputs/videos/isaac_v2_policy_tracked.mp4
 outputs/videos/isaac_v3_policy_tracked.mp4
 outputs/videos/isaac_v4_policy_tracked.mp4
 outputs/videos/isaac_v5_policy_tracked.mp4
+outputs/videos/isaac_v6_policy_tracked.mp4
 ```
 
 These targets use Isaac Lab's RSL-RL `play.py --video` flow, so `ffmpeg` must

@@ -23,6 +23,16 @@ class HumanoidV4EnvCfg(HumanoidEnvCfg):
     arm_pose_penalty_scale: float = 0.8
     action_rate_penalty_scale: float = 0.04
     vertical_velocity_penalty_scale: float = 0.0
+    arm_action_penalty_scale: float = 0.0
+    arm_velocity_penalty_scale: float = 0.0
+    leg_action_symmetry_penalty_scale: float = 0.0
+    leg_pose_symmetry_penalty_scale: float = 0.0
+    non_foot_low_height: float = 0.55
+    non_foot_low_penalty_scale: float = 0.0
+    foot_air_height: float = 0.20
+    foot_air_penalty_scale: float = 0.0
+    foot_slip_height: float = 0.16
+    foot_slip_penalty_scale: float = 0.0
 
 
 class HumanoidV4Env(HumanoidEnv):
@@ -33,8 +43,13 @@ class HumanoidV4Env(HumanoidEnv):
         self._previous_actions_for_rate = torch.zeros((self.num_envs, self.cfg.action_space), device=self.device)
         self._arm_body_mask: torch.Tensor | None = None
         self._torso_body_mask: torch.Tensor | None = None
+        self._foot_body_mask: torch.Tensor | None = None
+        self._non_foot_body_mask: torch.Tensor | None = None
         self._arm_joint_mask: torch.Tensor | None = None
         self._leg_joint_mask: torch.Tensor | None = None
+        self._left_leg_joint_mask: torch.Tensor | None = None
+        self._right_leg_joint_mask: torch.Tensor | None = None
+        self._leg_joint_pairs: tuple[torch.Tensor, torch.Tensor] | None = None
 
     def _reset_idx(self, env_ids):
         super()._reset_idx(env_ids)
@@ -80,6 +95,11 @@ class HumanoidV4Env(HumanoidEnv):
         arm_low_penalty = self._low_body_penalty(
             body_heights, self._arm_body_mask, self.cfg.arm_low_height, self.cfg.arm_low_penalty_scale
         )
+        non_foot_low_penalty = self._low_body_penalty(
+            body_heights, self._non_foot_body_mask, self.cfg.non_foot_low_height, self.cfg.non_foot_low_penalty_scale
+        )
+        foot_air_penalty = self._foot_air_penalty(body_heights)
+        foot_slip_penalty = self._foot_slip_penalty(data, body_heights)
 
         leg_pose_penalty = self._masked_square_penalty(
             self.dof_pos_scaled, self._leg_joint_mask, self.cfg.leg_pose_penalty_scale
@@ -87,12 +107,26 @@ class HumanoidV4Env(HumanoidEnv):
         arm_pose_penalty = self._masked_square_penalty(
             self.dof_pos_scaled, self._arm_joint_mask, self.cfg.arm_pose_penalty_scale
         )
+        arm_velocity_penalty = self._masked_square_penalty(
+            data.joint_vel, self._arm_joint_mask, self.cfg.arm_velocity_penalty_scale
+        )
+        leg_pose_symmetry_penalty = self._paired_square_penalty(
+            self.dof_pos_scaled, self._leg_joint_pairs, self.cfg.leg_pose_symmetry_penalty_scale
+        )
 
         action_rate_penalty = torch.zeros_like(base_reward)
+        arm_action_penalty = torch.zeros_like(base_reward)
+        leg_action_symmetry_penalty = torch.zeros_like(base_reward)
         actions = getattr(self, "actions", None)
         if actions is not None and actions.shape == self._previous_actions_for_rate.shape:
             action_delta = actions - self._previous_actions_for_rate
             action_rate_penalty = self.cfg.action_rate_penalty_scale * torch.mean(action_delta.square(), dim=-1)
+            arm_action_penalty = self._masked_square_penalty(
+                actions, self._arm_joint_mask, self.cfg.arm_action_penalty_scale
+            )
+            leg_action_symmetry_penalty = self._paired_square_penalty(
+                actions, self._leg_joint_pairs, self.cfg.leg_action_symmetry_penalty_scale
+            )
             self._previous_actions_for_rate[:] = actions.detach()
 
         total_reward = (
@@ -103,10 +137,38 @@ class HumanoidV4Env(HumanoidEnv):
             - high_height_penalty
             - torso_low_penalty
             - arm_low_penalty
+            - non_foot_low_penalty
+            - foot_air_penalty
+            - foot_slip_penalty
             - leg_pose_penalty
             - arm_pose_penalty
+            - arm_velocity_penalty
+            - leg_pose_symmetry_penalty
             - action_rate_penalty
+            - arm_action_penalty
+            - leg_action_symmetry_penalty
             - vertical_velocity_penalty
+        )
+        self._log_reward_terms(
+            root_height=root_height,
+            height_bonus=height_bonus,
+            height_tracking_penalty=height_tracking_penalty,
+            low_height_penalty=low_height_penalty,
+            high_height_penalty=high_height_penalty,
+            torso_low_penalty=torso_low_penalty,
+            arm_low_penalty=arm_low_penalty,
+            non_foot_low_penalty=non_foot_low_penalty,
+            foot_air_penalty=foot_air_penalty,
+            foot_slip_penalty=foot_slip_penalty,
+            leg_pose_penalty=leg_pose_penalty,
+            arm_pose_penalty=arm_pose_penalty,
+            arm_velocity_penalty=arm_velocity_penalty,
+            leg_pose_symmetry_penalty=leg_pose_symmetry_penalty,
+            action_rate_penalty=action_rate_penalty,
+            arm_action_penalty=arm_action_penalty,
+            leg_action_symmetry_penalty=leg_action_symmetry_penalty,
+            vertical_velocity_penalty=vertical_velocity_penalty,
+            total_reward=total_reward,
         )
         return total_reward
 
@@ -142,12 +204,15 @@ class HumanoidV4Env(HumanoidEnv):
         if self._arm_body_mask is None:
             body_names = [name.lower() for name in data.body_names]
             arm_body = ["arm" in name or "hand" in name for name in body_names]
+            foot_body = ["foot" in name or "ankle" in name or "toe" in name for name in body_names]
             torso_body = [
                 any(token in name for token in ("torso", "waist", "pelvis", "abdomen", "head"))
                 for name in body_names
             ]
             self._arm_body_mask = torch.tensor(arm_body, dtype=torch.bool, device=self.device)
+            self._foot_body_mask = torch.tensor(foot_body, dtype=torch.bool, device=self.device)
             self._torso_body_mask = torch.tensor(torso_body, dtype=torch.bool, device=self.device)
+            self._non_foot_body_mask = ~self._foot_body_mask
 
         if self._arm_joint_mask is None:
             joint_names = [name.lower() for name in data.joint_names]
@@ -156,8 +221,13 @@ class HumanoidV4Env(HumanoidEnv):
                 any(token in name for token in ("thigh", "knee", "shin", "ankle", "foot", "hip"))
                 for name in joint_names
             ]
+            left_leg_joint = [is_leg and "left" in name for is_leg, name in zip(leg_joint, joint_names, strict=False)]
+            right_leg_joint = [is_leg and "right" in name for is_leg, name in zip(leg_joint, joint_names, strict=False)]
             self._arm_joint_mask = torch.tensor(arm_joint, dtype=torch.bool, device=self.device)
             self._leg_joint_mask = torch.tensor(leg_joint, dtype=torch.bool, device=self.device)
+            self._left_leg_joint_mask = torch.tensor(left_leg_joint, dtype=torch.bool, device=self.device)
+            self._right_leg_joint_mask = torch.tensor(right_leg_joint, dtype=torch.bool, device=self.device)
+            self._leg_joint_pairs = self._paired_joint_indices(joint_names, self._leg_joint_mask)
 
     def _low_body_penalty(
         self,
@@ -181,3 +251,67 @@ class HumanoidV4Env(HumanoidEnv):
         if mask is None or not torch.any(mask):
             return torch.zeros(self.num_envs, device=self.device)
         return scale * torch.mean(values[:, mask].square(), dim=-1)
+
+    def _paired_square_penalty(
+        self,
+        values: torch.Tensor,
+        pairs: tuple[torch.Tensor, torch.Tensor] | None,
+        scale: float,
+    ) -> torch.Tensor:
+        if pairs is None or pairs[0].numel() == 0:
+            return torch.zeros(self.num_envs, device=self.device)
+        left_idx, right_idx = pairs
+        return scale * torch.mean((values[:, left_idx].abs() - values[:, right_idx].abs()).square(), dim=-1)
+
+    def _foot_air_penalty(self, body_heights: torch.Tensor) -> torch.Tensor:
+        if self._foot_body_mask is None or not torch.any(self._foot_body_mask):
+            return torch.zeros(self.num_envs, device=self.device)
+        foot_heights = body_heights[:, self._foot_body_mask]
+        both_feet_high = torch.amin(foot_heights, dim=-1) > self.cfg.foot_air_height
+        return self.cfg.foot_air_penalty_scale * both_feet_high.float()
+
+    def _foot_slip_penalty(self, data, body_heights: torch.Tensor) -> torch.Tensor:
+        if self._foot_body_mask is None or not torch.any(self._foot_body_mask):
+            return torch.zeros(self.num_envs, device=self.device)
+        body_vel = getattr(data, "body_lin_vel_w", None)
+        if body_vel is None:
+            body_state = getattr(data, "body_state_w", None)
+            if body_state is not None and body_state.shape[-1] >= 10:
+                body_vel = body_state[..., 7:10]
+        if body_vel is None:
+            return torch.zeros(self.num_envs, device=self.device)
+        foot_heights = body_heights[:, self._foot_body_mask]
+        foot_xy_vel = body_vel[:, self._foot_body_mask, :2]
+        near_ground = (foot_heights < self.cfg.foot_slip_height).float()
+        slip = torch.linalg.norm(foot_xy_vel, dim=-1).square() * near_ground
+        return self.cfg.foot_slip_penalty_scale * torch.mean(slip, dim=-1)
+
+    def _paired_joint_indices(
+        self,
+        joint_names: list[str],
+        leg_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        left_indices: list[int] = []
+        right_indices: list[int] = []
+        leg_flags = [bool(value) for value in leg_mask.detach().cpu().tolist()]
+        normalized_to_index = {self._normalize_joint_side(name): idx for idx, name in enumerate(joint_names)}
+        for idx, name in enumerate(joint_names):
+            if not leg_flags[idx] or "left" not in name:
+                continue
+            mate = normalized_to_index.get(self._normalize_joint_side(name).replace("left", "right", 1))
+            if mate is not None and leg_flags[mate]:
+                left_indices.append(idx)
+                right_indices.append(mate)
+        return (
+            torch.tensor(left_indices, dtype=torch.long, device=self.device),
+            torch.tensor(right_indices, dtype=torch.long, device=self.device),
+        )
+
+    @staticmethod
+    def _normalize_joint_side(name: str) -> str:
+        return name.lower().replace("left_", "left").replace("right_", "right")
+
+    def _log_reward_terms(self, **terms: torch.Tensor) -> None:
+        log = self.extras.setdefault("log", {})
+        for name, value in terms.items():
+            log[f"custom/{name}"] = torch.mean(value.detach())

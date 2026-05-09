@@ -43,6 +43,16 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "arm_pose_penalty_scale": 0.8,
     "action_rate_penalty_scale": 0.04,
     "vertical_velocity_penalty_scale": 0.0,
+    "arm_action_penalty_scale": 0.0,
+    "arm_velocity_penalty_scale": 0.0,
+    "leg_action_symmetry_penalty_scale": 0.0,
+    "leg_pose_symmetry_penalty_scale": 0.0,
+    "non_foot_low_height": 0.55,
+    "non_foot_low_penalty_scale": 0.0,
+    "foot_air_height": 0.20,
+    "foot_air_penalty_scale": 0.0,
+    "foot_slip_height": 0.16,
+    "foot_slip_penalty_scale": 0.0,
 }
 
 
@@ -95,6 +105,16 @@ class IsaacLabPPOConfig:
     arm_pose_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_pose_penalty_scale"]
     action_rate_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["action_rate_penalty_scale"]
     vertical_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["vertical_velocity_penalty_scale"]
+    arm_action_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_action_penalty_scale"]
+    arm_velocity_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_velocity_penalty_scale"]
+    leg_action_symmetry_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["leg_action_symmetry_penalty_scale"]
+    leg_pose_symmetry_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["leg_pose_symmetry_penalty_scale"]
+    non_foot_low_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["non_foot_low_height"]
+    non_foot_low_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["non_foot_low_penalty_scale"]
+    foot_air_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_height"]
+    foot_air_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_penalty_scale"]
+    foot_slip_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_height"]
+    foot_slip_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_penalty_scale"]
     reward_notes: list[str] = field(default_factory=list)
     hydra_overrides: list[str] = field(default_factory=list)
 
@@ -201,8 +221,14 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "low arm/hand body penalty as a proxy for arm-supported crawling",
                     "leg joint pose penalty to discourage deep crouch",
                     "arm joint pose penalty to discourage arm-driven locomotion",
+                    "arm action magnitude penalty to discourage arm-driven locomotion",
+                    "arm joint velocity penalty",
+                    "leg action and pose symmetry penalties",
                     "action-rate penalty for smoother motion",
                     "vertical velocity penalty to discourage bouncing",
+                    "non-foot low-body proxy penalty",
+                    "feet airborne and foot-slip proxy penalties",
+                    "custom reward diagnostics under extras['log']",
                 ]
                 if cfg.custom_isaac_task
                 else []

@@ -1,0 +1,64 @@
+baseline_name: isaac_v6_diagnostic_gait_reward_humanoid_direct
+simulator_backend: Isaac Lab
+reward_version: isaac_v6_diagnostic_gait_reward
+loss_version: isaac_rsl_rl_ppo_default
+reward_design_goal: Add reward diagnostics, stronger arm-use penalties, gait symmetry, and foot-support proxies after V5 still learned an asymmetric crouched gait.
+custom_isaac_task: true
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-V6-Direct-v0
+seed: 301
+num_envs: 4096
+total_timesteps: 200000000
+num_steps_per_env: 32
+max_iterations:
+save_interval: 50
+experiment_name: humanoid_direct_single_ppo_v6
+run_name: diagnostic_gait_v6
+output_dir: outputs/isaac_ppo_v6
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+heading_weight: 1.0
+up_weight: 0.9
+energy_cost_scale: 0.10
+actions_cost_scale: 0.03
+alive_reward_scale: 1.0
+dof_vel_scale: 0.1
+death_cost: -4.0
+termination_height: 1.0
+angular_velocity_scale: 0.25
+contact_force_scale: 0.01
+height_target: 1.30
+height_bonus_scale: 0.0
+height_tracking_penalty_scale: 3.0
+low_height_threshold: 1.15
+low_height_penalty_scale: 4.0
+high_height_threshold: 1.48
+high_height_penalty_scale: 5.0
+torso_low_height: 1.08
+torso_low_penalty_scale: 3.0
+arm_low_height: 0.70
+arm_low_penalty_scale: 5.0
+leg_pose_penalty_scale: 0.4
+arm_pose_penalty_scale: 1.6
+action_rate_penalty_scale: 0.12
+vertical_velocity_penalty_scale: 3.0
+arm_action_penalty_scale: 0.7
+arm_velocity_penalty_scale: 0.02
+leg_action_symmetry_penalty_scale: 0.20
+leg_pose_symmetry_penalty_scale: 0.10
+non_foot_low_height: 0.65
+non_foot_low_penalty_scale: 4.0
+foot_air_height: 0.22
+foot_air_penalty_scale: 0.6
+foot_slip_height: 0.18
+foot_slip_penalty_scale: 0.15
+reward_notes:
+  - V6 uses the same custom Isaac Lab task implementation as V4/V5 but adds more diagnostics and gait-quality terms.
+  - V6 logs custom reward diagnostics under TensorBoard/extras keys prefixed with custom/.
+  - Arm action and arm velocity penalties target the asymmetric arm-assisted posture seen in V5.
+  - Foot-air and foot-slip terms are height/velocity proxies because the direct humanoid task does not define explicit contact sensors.
+  - Leg symmetry penalties discourage one-sided crouched locomotion.
+hydra_overrides: []
