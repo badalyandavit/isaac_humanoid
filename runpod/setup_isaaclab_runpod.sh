@@ -7,6 +7,7 @@ ISAACSIM_VERSION=${ISAACSIM_VERSION:-5.1.0}
 ISAACLAB_VENV=${ISAACLAB_VENV:-/workspace/isaaclab_env}
 ISAACLAB_USE_SYSTEM_PYTHON=${ISAACLAB_USE_SYSTEM_PYTHON:-0}
 PRESERVE_TORCH=${PRESERVE_TORCH:-1}
+PYTORCH_CUDA_INDEX=${PYTORCH_CUDA_INDEX:-https://download.pytorch.org/whl/cu128}
 WORKSPACE_TMP=${WORKSPACE_TMP:-/workspace/tmp}
 PIP_CACHE_DIR=${PIP_CACHE_DIR:-/workspace/pip-cache}
 
@@ -90,6 +91,10 @@ fi
 
 cd "${ISAACLAB_DIR}"
 ./isaaclab.sh --install
+if [[ "${PRESERVE_TORCH}" != "1" ]]; then
+  python -m pip install --index-url "${PYTORCH_CUDA_INDEX}" "torchaudio==2.7.0"
+fi
+python -m pip install "click==8.1.7"
 ./isaaclab.sh -p - <<'PY'
 import gymnasium as gym
 import isaaclab_tasks  # noqa: F401
