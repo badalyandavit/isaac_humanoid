@@ -34,6 +34,7 @@ for _humanoid_rl_task_id in (
     "Isaac-Humanoid-V9-Direct-v0",
     "Isaac-Humanoid-V10-Direct-v0",
     "Isaac-Humanoid-V11-Direct-v0",
+    "Isaac-Humanoid-V12-Direct-v0",
 ):
     gym.register(
         id=_humanoid_rl_task_id,
@@ -88,7 +89,7 @@ def main() -> None:
     ensure_dir(target_pkg)
     target_env.write_text(source, encoding="utf-8")
     target_init.write_text(patched_init, encoding="utf-8")
-    print("Installed custom Isaac Humanoid V4/V5/V6/V7/V8/V9/V10/V11 task ids.")
+    print("Installed custom Isaac Humanoid V4/V5/V6/V7/V8/V9/V10/V11/V12 task ids.")
 
 
 if __name__ == "__main__":

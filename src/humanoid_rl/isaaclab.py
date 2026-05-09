@@ -53,6 +53,7 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "foot_air_penalty_scale": 0.0,
     "foot_slip_height": 0.16,
     "foot_slip_penalty_scale": 0.0,
+    "stance_foot_slip_penalty_scale": 0.0,
     "target_forward_velocity": 0.0,
     "forward_velocity_reward_scale": 0.0,
     "forward_velocity_sigma": 0.6,
@@ -64,6 +65,8 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "low_speed_vertical_penalty_scale": 0.0,
     "arm_high_height": 1.55,
     "arm_high_penalty_scale": 0.0,
+    "arm_neutral_height": 1.10,
+    "arm_neutral_height_penalty_scale": 0.0,
     "foot_contact_height": 0.14,
     "foot_contact_force_threshold": 1.0,
     "single_foot_contact_reward_scale": 0.0,
@@ -75,6 +78,9 @@ ISAAC_HUMANOID_V4_REWARD_DEFAULTS: dict[str, float] = {
     "foot_contact_transition_reward_scale": 0.0,
     "foot_contact_transition_target": 0.35,
     "soft_single_foot_contact_reward_scale": 0.0,
+    "touchdown_reward_scale": 0.0,
+    "min_touchdown_air_time": 0.10,
+    "max_touchdown_air_time": 0.50,
     "swing_foot_clearance_height": 0.26,
     "swing_foot_clearance_reward_scale": 0.0,
     "max_swing_foot_height": 0.34,
@@ -151,6 +157,9 @@ class IsaacLabPPOConfig:
     foot_air_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_air_penalty_scale"]
     foot_slip_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_height"]
     foot_slip_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_slip_penalty_scale"]
+    stance_foot_slip_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "stance_foot_slip_penalty_scale"
+    ]
     target_forward_velocity: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["target_forward_velocity"]
     forward_velocity_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_reward_scale"]
     forward_velocity_sigma: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["forward_velocity_sigma"]
@@ -166,6 +175,10 @@ class IsaacLabPPOConfig:
     low_speed_vertical_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["low_speed_vertical_penalty_scale"]
     arm_high_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_high_height"]
     arm_high_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_high_penalty_scale"]
+    arm_neutral_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["arm_neutral_height"]
+    arm_neutral_height_penalty_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
+        "arm_neutral_height_penalty_scale"
+    ]
     foot_contact_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_height"]
     foot_contact_force_threshold: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["foot_contact_force_threshold"]
     single_foot_contact_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["single_foot_contact_reward_scale"]
@@ -183,6 +196,9 @@ class IsaacLabPPOConfig:
     soft_single_foot_contact_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "soft_single_foot_contact_reward_scale"
     ]
+    touchdown_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["touchdown_reward_scale"]
+    min_touchdown_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["min_touchdown_air_time"]
+    max_touchdown_air_time: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["max_touchdown_air_time"]
     swing_foot_clearance_height: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS["swing_foot_clearance_height"]
     swing_foot_clearance_reward_scale: float = ISAAC_HUMANOID_V4_REWARD_DEFAULTS[
         "swing_foot_clearance_reward_scale"
@@ -312,6 +328,7 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "low torso/pelvis/head body penalty",
                     "low arm/hand body penalty as a proxy for arm-supported crawling",
                     "high arm/hand body penalty to discourage raised-arm balance exploits",
+                    "arm neutral-height penalty for raised-arm balance exploits below the high-arm threshold",
                     "leg joint pose penalty to discourage deep crouch",
                     "arm joint pose penalty to discourage arm-driven locomotion",
                     "arm action magnitude penalty to discourage arm-driven locomotion",
@@ -324,8 +341,9 @@ def baseline_spec(cfg: IsaacLabPPOConfig) -> dict[str, Any]:
                     "action-rate penalty for smoother motion",
                     "vertical velocity penalty to discourage bouncing",
                     "non-foot low-body proxy penalty",
-                    "feet airborne and foot-slip proxy penalties",
+                    "feet airborne, foot-slip, and stance-foot slip proxy penalties",
                     "single-foot contact, foot-switch, no-contact, double-contact, and foot-balance terms",
+                    "air-time-to-touchdown reward for real alternating steps",
                     "soft foot-contact transition reward",
                     "soft single-support and foot-height-difference rewards",
                     "swing-foot clearance and step-length rewards",
