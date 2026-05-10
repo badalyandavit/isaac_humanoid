@@ -245,6 +245,7 @@ Isaac learning curves are exported from TensorBoard event files in
 
 ```text
 outputs/isaac_learning_curves/
+  isaac_scalars.csv
   report.md
   *.png
 ```

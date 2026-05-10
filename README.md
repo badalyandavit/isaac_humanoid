@@ -288,6 +288,7 @@ Outputs:
 
 ```text
 outputs/isaac_learning_curves/
+  isaac_scalars.csv
   isaac_reward.png
   isaac_episode_length.png
   isaac_losses.png
@@ -296,7 +297,8 @@ outputs/isaac_learning_curves/
   report.md
 ```
 
-The raw scalar CSVs are intentionally ignored because they grow quickly.
+The Isaac scalar CSV is allowed in git because the curve exporter now defaults
+to milestone runs only.
 
 ## Isaac Videos
 
