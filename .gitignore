@@ -73,3 +73,5 @@ outputs/*
 
 # internal docs
 todo.md
+outputs/isaac_learning_curves/isaac_scalars.csv
+outputs/isaac_learning_curves/*.csv
