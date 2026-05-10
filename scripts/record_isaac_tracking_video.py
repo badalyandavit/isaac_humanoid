@@ -99,11 +99,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-envs", type=int, default=1)
     parser.add_argument("--video-length", type=int, default=None)
     parser.add_argument("--no-headless", action="store_true")
-    parser.add_argument("--camera-distance", type=float, default=5.0)
-    parser.add_argument("--camera-lateral", type=float, default=-2.0)
-    parser.add_argument("--camera-height", type=float, default=2.2)
-    parser.add_argument("--camera-lookahead", type=float, default=1.0)
-    parser.add_argument("--camera-look-height", type=float, default=0.8)
+    parser.add_argument("--camera-distance", type=float, default=6.0)
+    parser.add_argument("--camera-lateral", type=float, default=-2.5)
+    parser.add_argument("--camera-height", type=float, default=2.4)
+    parser.add_argument("--camera-lookahead", type=float, default=0.8)
+    parser.add_argument("--camera-look-height", type=float, default=0.35)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -131,11 +131,11 @@ def patch_play_script(isaaclab_dir: Path) -> Path:
         r'(?P<stmt>^[ \t]*parser\.add_argument\([^\n]*"--video_length"[^\n]*\)\s*\n?)',
         r'\g<stmt>'
         'parser.add_argument("--camera_tracking", action="store_true", default=False, help="Track env_0 robot with the viewer camera.")\n'
-        'parser.add_argument("--camera_distance", type=float, default=5.0, help="Tracking camera distance behind the robot.")\n'
-        'parser.add_argument("--camera_lateral", type=float, default=-2.0, help="Tracking camera lateral offset.")\n'
-        'parser.add_argument("--camera_height", type=float, default=2.2, help="Tracking camera height above robot root.")\n'
-        'parser.add_argument("--camera_lookahead", type=float, default=1.0, help="Tracking camera forward lookahead.")\n'
-        'parser.add_argument("--camera_look_height", type=float, default=0.8, help="Tracking camera look-at height above robot root.")\n',
+        'parser.add_argument("--camera_distance", type=float, default=6.0, help="Tracking camera distance behind the robot.")\n'
+        'parser.add_argument("--camera_lateral", type=float, default=-2.5, help="Tracking camera lateral offset.")\n'
+        'parser.add_argument("--camera_height", type=float, default=2.4, help="Tracking camera height above robot root.")\n'
+        'parser.add_argument("--camera_lookahead", type=float, default=0.8, help="Tracking camera forward lookahead.")\n'
+        'parser.add_argument("--camera_look_height", type=float, default=0.35, help="Tracking camera look-at height above robot root.")\n',
         "--video_length parser argument",
     )
     source = sub_once(source, r"import torch", "import torch" + TRACKING_HELPER, "import torch")

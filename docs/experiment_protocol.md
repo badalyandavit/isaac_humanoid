@@ -88,6 +88,8 @@ make isaac-v14-spec
 make isaac-ppo-v14
 make isaac-v16-spec
 make isaac-ppo-v16
+make isaac-v17-spec
+make isaac-ppo-v17
 make isaac-curves
 ```
 
@@ -209,6 +211,23 @@ V16 keeps V14 as the stable base and adds only moderate arm-down and
 cadence-balance pressure. It prioritizes full-episode stability before further
 arm/gait polishing.
 
+Report the Isaac V17 final stable-walk milestone as:
+
+```text
+isaac_v17_final_stable_walk_humanoid_direct
+```
+
+V17 registers:
+
+```text
+Isaac-Humanoid-V17-Direct-v0
+```
+
+V17 is the final conservative tune from the V16 evaluation. It restores V14's
+taller root-height pressure, keeps arm-down shaping moderate, strengthens
+no-foot-contact and airtime penalties, and slightly increases cadence balance
+without repeating the V15 collapse.
+
 ## Isaac Videos
 
 Record tracked-camera milestone videos with:
@@ -220,6 +239,7 @@ make isaac-video-track-v4
 make isaac-video-track-v9
 make isaac-video-track-v14
 make isaac-video-track-v16
+make isaac-video-track-v17
 ```
 
 The video targets use the checkpoint saved in each training manifest and copy
@@ -232,6 +252,7 @@ outputs/videos/isaac_v4_policy_tracked.mp4
 outputs/videos/isaac_v9_policy_tracked.mp4
 outputs/videos/isaac_v14_policy_tracked.mp4
 outputs/videos/isaac_v16_policy_tracked.mp4
+outputs/videos/isaac_v17_policy_tracked.mp4
 ```
 
 The `isaac-video-track-*` targets patch a temporary copy of Isaac Lab's play

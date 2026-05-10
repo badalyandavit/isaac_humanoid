@@ -38,6 +38,9 @@ outputs/*
 !outputs/isaac_ppo_v16/
 !outputs/isaac_ppo_v16/*.json
 !outputs/isaac_ppo_v16/*.md
+!outputs/isaac_ppo_v17/
+!outputs/isaac_ppo_v17/*.json
+!outputs/isaac_ppo_v17/*.md
 !outputs/videos/
 !outputs/videos/humanoid_policy.mp4
 !outputs/videos/isaac_v0_policy.mp4
@@ -52,6 +55,8 @@ outputs/*
 !outputs/videos/isaac_v14_policy_tracked.mp4
 !outputs/videos/isaac_v16_policy.mp4
 !outputs/videos/isaac_v16_policy_tracked.mp4
+!outputs/videos/isaac_v17_policy.mp4
+!outputs/videos/isaac_v17_policy_tracked.mp4
 
 # internal docs
 todo.md
