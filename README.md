@@ -28,6 +28,7 @@ configs/
   isaac_ppo_v14.yaml
   isaac_ppo_v16.yaml
   isaac_ppo_v17.yaml
+  isaac_ppo_v18.yaml
 scripts/
   train_ppo_baseline.py
   train_sac_baseline.py
@@ -107,6 +108,7 @@ The kept milestone variants are:
 - **V14**: `isaac_v14_cadence_gait_reward_humanoid_direct`
 - **V16**: `isaac_v16_stable_lower_arms_gait_reward_humanoid_direct`
 - **V17**: `isaac_v17_final_stable_walk_humanoid_direct`
+- **V18**: `isaac_v18_final_polished_walk_humanoid_direct`
 
 Intermediate tuning branches V2, V3, V5-V8, V10-V13, and V15 were pruned from
 the tracked repo to keep the history focused on reportable milestones.
@@ -237,6 +239,26 @@ low, kept one arm near the head, and showed too much no-foot airtime. V17:
 - slightly strengthens cadence and underused-foot terms for left/right balance
 - extends training to `300M` environment steps
 
+### V18 Final Polished-Walk Reward
+
+V18 registers:
+
+```text
+Isaac-Humanoid-V18-Direct-v0
+```
+
+V18 is the final polish pass on V17. It keeps the same custom task and PPO loss,
+but makes small reward-weight changes aimed at the remaining V17 issues:
+
+- stronger arm-high, arm-neutral-height, arm-action, and arm-velocity pressure
+- stronger foot-slip and stance-foot-slip penalties for the dragging/shuffling
+  gait
+- small swing-clearance, touchdown, and contact-switch incentives so feet lift
+  and replace instead of sliding continuously
+- mild extra root/torso height pressure to avoid returning to the lower V16
+  posture
+- still uses `300M` environment steps
+
 ## Isaac Setup And Training
 
 Use an Isaac Sim / Isaac Lab compatible Python 3.11 environment:
@@ -250,6 +272,7 @@ make isaac-ppo-v9
 make isaac-ppo-v14
 make isaac-ppo-v16
 make isaac-ppo-v17
+make isaac-ppo-v18
 ```
 
 The Isaac setup script installs Isaac Sim `5.1.0` from NVIDIA's pip index and
@@ -281,6 +304,7 @@ outputs/isaac_ppo_v9/manifest.json
 outputs/isaac_ppo_v14/manifest.json
 outputs/isaac_ppo_v16/manifest.json
 outputs/isaac_ppo_v17/manifest.json
+outputs/isaac_ppo_v18/manifest.json
 ```
 
 Isaac Lab writes training TensorBoard event files under:
@@ -297,7 +321,7 @@ Export milestone Isaac scalar logs and learning-curve figures into this repo:
 make isaac-curves
 ```
 
-By default this includes only V0, V1, V4, V9, V14, V16, and V17. To include every
+By default this includes only V0, V1, V4, V9, V14, V16, V17, and V18. To include every
 old local RunPod run that still exists on disk:
 
 ```bash
@@ -334,6 +358,7 @@ make isaac-video-v9
 make isaac-video-v14
 make isaac-video-v16
 make isaac-video-v17
+make isaac-video-v18
 ```
 
 Record tracked-camera videos when you want the camera to follow the humanoid:
@@ -346,6 +371,7 @@ make isaac-video-track-v9
 make isaac-video-track-v14
 make isaac-video-track-v16
 make isaac-video-track-v17
+make isaac-video-track-v18
 ```
 
 The tracked-camera recorder creates a temporary patched copy of Isaac Lab's
@@ -370,6 +396,7 @@ make isaac-v9-spec
 make isaac-v14-spec
 make isaac-v16-spec
 make isaac-v17-spec
+make isaac-v18-spec
 ```
 
 ## Evaluate MuJoCo Baselines

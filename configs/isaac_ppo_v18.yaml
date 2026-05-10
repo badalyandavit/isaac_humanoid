@@ -1,0 +1,115 @@
+baseline_name: isaac_v18_final_polished_walk_humanoid_direct
+simulator_backend: Isaac Lab
+reward_version: isaac_v18_final_polished_walk_reward
+loss_version: isaac_rsl_rl_ppo_default
+reward_design_goal: Final polish on V17 that keeps full-episode stability while reducing raised arms, stance-foot sliding, and low-clearance shuffling.
+custom_isaac_task: true
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-V18-Direct-v0
+seed: 301
+num_envs: 4096
+total_timesteps: 300000000
+num_steps_per_env: 32
+max_iterations:
+save_interval: 75
+experiment_name: humanoid_direct_single_ppo_v18
+run_name: final_polished_walk_v18
+output_dir: outputs/isaac_ppo_v18
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+heading_weight: 1.0
+up_weight: 0.9
+energy_cost_scale: 0.09
+actions_cost_scale: 0.032
+alive_reward_scale: 0.95
+dof_vel_scale: 0.1
+death_cost: -4.0
+termination_height: 0.95
+angular_velocity_scale: 0.25
+contact_force_scale: 0.01
+height_target: 1.28
+height_bonus_scale: 0.0
+height_tracking_penalty_scale: 3.8
+low_height_threshold: 1.16
+low_height_penalty_scale: 5.2
+high_height_threshold: 1.44
+high_height_penalty_scale: 5.2
+torso_low_height: 1.10
+torso_low_penalty_scale: 3.5
+arm_low_height: 0.68
+arm_low_penalty_scale: 4.0
+leg_pose_penalty_scale: 0.34
+arm_pose_penalty_scale: 2.85
+action_rate_penalty_scale: 0.11
+vertical_velocity_penalty_scale: 2.3
+arm_action_penalty_scale: 1.22
+arm_velocity_penalty_scale: 0.065
+leg_action_symmetry_penalty_scale: 0.14
+leg_pose_symmetry_penalty_scale: 0.08
+non_foot_low_height: 0.65
+non_foot_low_penalty_scale: 4.0
+foot_air_height: 0.20
+foot_air_penalty_scale: 0.75
+foot_slip_height: 0.18
+foot_slip_penalty_scale: 0.48
+stance_foot_slip_penalty_scale: 0.85
+target_forward_velocity: 0.88
+forward_velocity_reward_scale: 1.22
+forward_velocity_sigma: 0.48
+forward_velocity_tracking_penalty_scale: 0.18
+max_forward_velocity: 1.20
+high_forward_velocity_penalty_scale: 1.25
+lateral_velocity_penalty_scale: 1.30
+low_speed_threshold: 0.50
+low_speed_vertical_penalty_scale: 3.0
+arm_high_height: 1.24
+arm_high_penalty_scale: 12.25
+arm_neutral_height: 0.95
+arm_neutral_height_penalty_scale: 3.85
+foot_contact_height: 0.17
+foot_contact_force_threshold: 1.0
+single_foot_contact_reward_scale: 0.05
+foot_contact_switch_reward_scale: 0.11
+no_foot_contact_penalty_scale: 1.55
+double_foot_contact_penalty_scale: 0.08
+foot_contact_balance_penalty_scale: 3.35
+foot_contact_ema_decay: 0.972
+foot_contact_transition_reward_scale: 0.22
+foot_contact_transition_target: 0.27
+soft_single_foot_contact_reward_scale: 0.06
+touchdown_reward_scale: 0.96
+min_touchdown_air_time: 0.07
+max_touchdown_air_time: 0.34
+max_foot_air_time: 0.30
+foot_air_time_penalty_scale: 3.35
+foot_contact_dominance_threshold: 0.10
+soft_foot_contact_switch_reward_scale: 0.68
+underused_foot_contact_reward_scale: 0.38
+min_stance_time: 0.16
+max_stance_time: 0.46
+stance_duration_penalty_scale: 0.68
+swing_foot_clearance_height: 0.23
+swing_foot_clearance_reward_scale: 0.13
+max_swing_foot_height: 0.29
+swing_foot_high_penalty_scale: 2.15
+foot_height_difference_target: 0.09
+foot_height_difference_reward_scale: 0.02
+max_foot_height_difference: 0.20
+foot_height_difference_penalty_scale: 3.20
+step_length_target: 0.28
+step_length_reward_scale: 0.07
+max_foot_lateral_distance: 0.38
+foot_lateral_distance_penalty_scale: 0.35
+gait_curriculum_steps: 56000.0
+gait_curriculum_start: 0.10
+reward_notes:
+  - V18 is the final polish pass on V17, not a broad redesign.
+  - It keeps V17's full-horizon stability and contact/no-contact safeguards.
+  - It increases arm-high, arm-neutral-height, arm-action, and arm-velocity pressure to reduce the remaining forward/up arm posture.
+  - It increases foot-slip and stance-foot-slip penalties because V17 still looked like a stiff shuffle with dragging feet.
+  - It adds a small swing-clearance, touchdown, and switch incentive so the policy has a reason to lift and replace each foot without becoming airborne.
+  - It mildly raises low-height and torso-height pressure to avoid returning to the low V16 posture.
+hydra_overrides: []

@@ -68,6 +68,7 @@ MILESTONE_RUN_LABELS = {
     "_cadence_gait_v14": "Isaac V14",
     "_stable_lower_arms_v16": "Isaac V16",
     "_final_stable_walk_v17": "Isaac V17",
+    "_final_polished_walk_v18": "Isaac V18",
 }
 
 
