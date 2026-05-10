@@ -60,6 +60,15 @@ PLOT_SPECS = [
     },
 ]
 
+MILESTONE_RUN_LABELS = {
+    "_baseline": "Isaac V0",
+    "_upright_controlled_v1": "Isaac V1",
+    "_morphology_reward_v4": "Isaac V4",
+    "_curriculum_gait_v9": "Isaac V9",
+    "_cadence_gait_v14": "Isaac V14",
+    "_stable_lower_arms_v16": "Isaac V16",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot Isaac Lab RSL-RL TensorBoard learning curves.")
@@ -67,54 +76,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/isaac_learning_curves"))
     parser.add_argument("--smooth-window", type=int, default=3)
     parser.add_argument("--include-smoke", action="store_true")
+    parser.add_argument("--include-all-runs", action="store_true")
     return parser.parse_args()
 
 
 def run_label(run_dir: Path) -> str:
     name = run_dir.name
-    if name.endswith("_stable_lower_arms_v16"):
-        return "Isaac V16"
-    if name.endswith("_lower_arms_cadence_v15"):
-        return "Isaac V15"
-    if name.endswith("_cadence_gait_v14"):
-        return "Isaac V14"
-    if name.endswith("_airtime_balance_v13"):
-        return "Isaac V13"
-    if name.endswith("_touchdown_slip_v12"):
-        return "Isaac V12"
-    if name.endswith("_grounded_gait_v11"):
-        return "Isaac V11"
-    if name.endswith("_balanced_gait_v10"):
-        return "Isaac V10"
-    if name.endswith("_curriculum_gait_v9"):
-        return "Isaac V9"
-    if name.endswith("_step_transition_v8"):
-        return "Isaac V8"
-    if name.endswith("_contact_gait_v7"):
-        return "Isaac V7"
-    if name.endswith("_diagnostic_gait_v6"):
-        return "Isaac V6"
-    if name.endswith("_anti_jump_morphology_v5"):
-        return "Isaac V5"
-    if name.endswith("_morphology_reward_v4"):
-        return "Isaac V4"
-    if name.endswith("_tall_upright_v3"):
-        return "Isaac V3"
-    if name.endswith("_mild_upright_v2"):
-        return "Isaac V2"
-    if name.endswith("_upright_controlled_v1"):
-        return "Isaac V1"
-    if name.endswith("_baseline"):
-        return "Isaac V0"
+    for suffix, label in MILESTONE_RUN_LABELS.items():
+        if name.endswith(suffix):
+            return label
     return name
 
 
-def discover_runs(log_root: Path, include_smoke: bool) -> list[Path]:
+def is_milestone_run(run_dir: Path) -> bool:
+    return any(run_dir.name.endswith(suffix) for suffix in MILESTONE_RUN_LABELS)
+
+
+def discover_runs(log_root: Path, include_smoke: bool, include_all_runs: bool) -> list[Path]:
     if not log_root.exists():
         return []
     runs = [p for p in log_root.iterdir() if p.is_dir() and list(p.glob("events.out.tfevents.*"))]
     if not include_smoke:
         runs = [p for p in runs if "smoke" not in p.name.lower()]
+    if not include_all_runs:
+        runs = [p for p in runs if is_milestone_run(p)]
     return sorted(runs, key=lambda p: p.stat().st_mtime)
 
 
@@ -256,7 +241,7 @@ def write_report(out_dir: Path, df: pd.DataFrame, generated: list[Path], runs: l
 def main() -> None:
     args = parse_args()
     out_dir = ensure_dir(args.out_dir)
-    runs = discover_runs(args.log_root, args.include_smoke)
+    runs = discover_runs(args.log_root, args.include_smoke, args.include_all_runs)
     frames = [read_run_scalars(run) for run in runs]
     df = pd.concat([frame for frame in frames if not frame.empty], ignore_index=True) if frames else pd.DataFrame()
     if not df.empty:

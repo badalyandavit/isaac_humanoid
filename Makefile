@@ -11,7 +11,7 @@ ISAAC_VIDEO_OUT ?= outputs/videos/isaac_policy.mp4
 ISAAC_VIDEO_MAX_STEPS ?= 500
 ISAAC_VIDEO_NUM_ENVS ?= 1
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v2 isaac-ppo-v3 isaac-ppo-v4 isaac-ppo-v5 isaac-ppo-v6 isaac-ppo-v7 isaac-ppo-v8 isaac-ppo-v9 isaac-ppo-v10 isaac-ppo-v11 isaac-ppo-v12 isaac-ppo-v13 isaac-ppo-v14 isaac-ppo-v15 isaac-ppo-v16 isaac-baseline-spec isaac-v1-spec isaac-v2-spec isaac-v3-spec isaac-v4-spec isaac-v5-spec isaac-v6-spec isaac-v7-spec isaac-v8-spec isaac-v9-spec isaac-v10-spec isaac-v11-spec isaac-v12-spec isaac-v13-spec isaac-v14-spec isaac-v15-spec isaac-v16-spec isaac-v4-install eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v2 isaac-video-v3 isaac-video-v4 isaac-video-v5 isaac-video-v6 isaac-video-v7 isaac-video-v8 isaac-video-v9 isaac-video-v10 isaac-video-v11 isaac-video-v12 isaac-video-v13 isaac-video-v14 isaac-video-v15 isaac-video-v16 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v2 isaac-video-track-v3 isaac-video-track-v4 isaac-video-track-v5 isaac-video-track-v6 isaac-video-track-v7 isaac-video-track-v8 isaac-video-track-v9 isaac-video-track-v10 isaac-video-track-v11 isaac-video-track-v12 isaac-video-track-v13 isaac-video-track-v14 isaac-video-track-v15 isaac-video-track-v16
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v4 isaac-ppo-v9 isaac-ppo-v14 isaac-ppo-v16 isaac-baseline-spec isaac-v1-spec isaac-v4-spec isaac-v9-spec isaac-v14-spec isaac-v16-spec isaac-v4-install eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v4 isaac-video-v9 isaac-video-v14 isaac-video-v16 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v4 isaac-video-track-v9 isaac-video-track-v14 isaac-video-track-v16
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -32,50 +32,17 @@ isaac-ppo-baseline:
 isaac-ppo-v1:
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v1.yaml
 
-isaac-ppo-v2:
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v2.yaml
-
-isaac-ppo-v3:
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v3.yaml
-
 isaac-v4-install:
 	$(PYTHON) scripts/install_isaac_v4_task.py --config configs/isaac_ppo_v4.yaml
 
 isaac-ppo-v4: isaac-v4-install
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v4.yaml
 
-isaac-ppo-v5: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v5.yaml
-
-isaac-ppo-v6: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v6.yaml
-
-isaac-ppo-v7: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v7.yaml
-
-isaac-ppo-v8: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v8.yaml
-
 isaac-ppo-v9: isaac-v4-install
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v9.yaml
 
-isaac-ppo-v10: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v10.yaml
-
-isaac-ppo-v11: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v11.yaml
-
-isaac-ppo-v12: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v12.yaml
-
-isaac-ppo-v13: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v13.yaml
-
 isaac-ppo-v14: isaac-v4-install
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v14.yaml
-
-isaac-ppo-v15: isaac-v4-install
-	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v15.yaml
 
 isaac-ppo-v16: isaac-v4-install
 	$(PYTHON) scripts/train_isaac_ppo_baseline.py --config configs/isaac_ppo_v16.yaml
@@ -86,47 +53,14 @@ isaac-baseline-spec:
 isaac-v1-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v1.yaml --out-dir outputs/isaac_ppo_v1
 
-isaac-v2-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v2.yaml --out-dir outputs/isaac_ppo_v2
-
-isaac-v3-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v3.yaml --out-dir outputs/isaac_ppo_v3
-
 isaac-v4-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v4.yaml --out-dir outputs/isaac_ppo_v4
-
-isaac-v5-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v5.yaml --out-dir outputs/isaac_ppo_v5
-
-isaac-v6-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v6.yaml --out-dir outputs/isaac_ppo_v6
-
-isaac-v7-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v7.yaml --out-dir outputs/isaac_ppo_v7
-
-isaac-v8-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v8.yaml --out-dir outputs/isaac_ppo_v8
 
 isaac-v9-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v9.yaml --out-dir outputs/isaac_ppo_v9
 
-isaac-v10-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v10.yaml --out-dir outputs/isaac_ppo_v10
-
-isaac-v11-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v11.yaml --out-dir outputs/isaac_ppo_v11
-
-isaac-v12-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v12.yaml --out-dir outputs/isaac_ppo_v12
-
-isaac-v13-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v13.yaml --out-dir outputs/isaac_ppo_v13
-
 isaac-v14-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v14.yaml --out-dir outputs/isaac_ppo_v14
-
-isaac-v15-spec:
-	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v15.yaml --out-dir outputs/isaac_ppo_v15
 
 isaac-v16-spec:
 	$(PYTHON) scripts/write_isaac_baseline_spec.py --config configs/isaac_ppo_v16.yaml --out-dir outputs/isaac_ppo_v16
@@ -154,47 +88,14 @@ isaac-video-v0:
 isaac-video-v1:
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v1.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v1_policy.mp4
 
-isaac-video-v2:
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v2.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v2_policy.mp4
-
-isaac-video-v3:
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v3.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v3_policy.mp4
-
 isaac-video-v4: isaac-v4-install
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v4.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v4_policy.mp4
-
-isaac-video-v5: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v5.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v5_policy.mp4
-
-isaac-video-v6: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v6.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v6_policy.mp4
-
-isaac-video-v7: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v7.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v7_policy.mp4
-
-isaac-video-v8: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v8.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v8_policy.mp4
 
 isaac-video-v9: isaac-v4-install
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v9.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v9_policy.mp4
 
-isaac-video-v10: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v10.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v10_policy.mp4
-
-isaac-video-v11: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v11.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v11_policy.mp4
-
-isaac-video-v12: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v12.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v12_policy.mp4
-
-isaac-video-v13: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v13.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v13_policy.mp4
-
 isaac-video-v14: isaac-v4-install
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v14.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v14_policy.mp4
-
-isaac-video-v15: isaac-v4-install
-	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v15.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v15_policy.mp4
 
 isaac-video-v16: isaac-v4-install
 	$(MAKE) isaac-video ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v16.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v16_policy.mp4
@@ -208,47 +109,14 @@ isaac-video-track-v0:
 isaac-video-track-v1:
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v1.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v1_policy_tracked.mp4
 
-isaac-video-track-v2:
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v2.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v2_policy_tracked.mp4
-
-isaac-video-track-v3:
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v3.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v3_policy_tracked.mp4
-
 isaac-video-track-v4: isaac-v4-install
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v4.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v4_policy_tracked.mp4
-
-isaac-video-track-v5: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v5.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v5_policy_tracked.mp4
-
-isaac-video-track-v6: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v6.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v6_policy_tracked.mp4
-
-isaac-video-track-v7: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v7.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v7_policy_tracked.mp4
-
-isaac-video-track-v8: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v8.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v8_policy_tracked.mp4
 
 isaac-video-track-v9: isaac-v4-install
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v9.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v9_policy_tracked.mp4
 
-isaac-video-track-v10: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v10.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v10_policy_tracked.mp4
-
-isaac-video-track-v11: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v11.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v11_policy_tracked.mp4
-
-isaac-video-track-v12: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v12.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v12_policy_tracked.mp4
-
-isaac-video-track-v13: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v13.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v13_policy_tracked.mp4
-
 isaac-video-track-v14: isaac-v4-install
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v14.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v14_policy_tracked.mp4
-
-isaac-video-track-v15: isaac-v4-install
-	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v15.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v15_policy_tracked.mp4
 
 isaac-video-track-v16: isaac-v4-install
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v16.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v16_policy_tracked.mp4
