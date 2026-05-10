@@ -17,8 +17,8 @@ from humanoid_rl.envs import (
     extract_episode_stats,
     info_array_mean,
     make_vector_env,
-    scalar_info,
 )
+from humanoid_rl.eval import evaluate_policy
 from humanoid_rl.models import ActorCritic
 from humanoid_rl.rollout import RolloutStorage
 from humanoid_rl.utils import CSVLogger, ensure_dir, resolve_device, set_seed, write_json
@@ -113,13 +113,27 @@ class PPOTrainer:
             if ctrl_cost is not None:
                 ctrl_cost_values.append(ctrl_cost)
             storage.rewards[step] = torch.as_tensor(reward, dtype=torch.float32, device=self.device) * cfg.reward_scale
+            storage.terminations[step] = torch.as_tensor(terminated.astype(np.float32), dtype=torch.float32, device=self.device)
             self.global_step += cfg.num_envs
+
+            # Reconstruct the actual next state of the transition. On terminated/truncated
+            # steps `next_obs` already holds the post-reset observation; the true next
+            # state lives in `infos["final_observation"]` (Gymnasium vector API).
+            real_next_obs = np.asarray(next_obs, dtype=np.float32).reshape(cfg.num_envs, self.obs_dim)
+            final_obs = infos.get("final_observation") if isinstance(infos, dict) else None
+            if final_obs is not None:
+                for env_idx, item in enumerate(final_obs):
+                    if item is not None:
+                        real_next_obs[env_idx] = np.asarray(item, dtype=np.float32).reshape(self.obs_dim)
+            real_next_obs_norm = self._normalize_obs_np(real_next_obs, update=False)
+            real_next_obs_t = torch.as_tensor(real_next_obs_norm, dtype=torch.float32, device=self.device)
+            with torch.no_grad():
+                storage.next_values[step] = self.model.get_value(real_next_obs_t)
+
             next_obs = self._normalize_obs_np(next_obs, update=True)
             self.next_obs = torch.as_tensor(next_obs, dtype=torch.float32, device=self.device)
             self.next_done = torch.as_tensor(done.astype(np.float32), dtype=torch.float32, device=self.device)
-        with torch.no_grad():
-            next_value = self.model.get_value(self.next_obs)
-        storage.compute_gae(next_value, self.next_done, cfg.gamma, cfg.gae_lambda)
+        storage.compute_gae(cfg.gamma, cfg.gae_lambda)
         rollout_metrics = {
             "action_l2_norm": float(np.mean(action_l2_values)) if action_l2_values else 0.0,
             "action_smoothness": float(np.mean(action_smoothness_values)) if action_smoothness_values else 0.0,
@@ -141,8 +155,10 @@ class PPOTrainer:
         pg_loss_value = 0.0
         v_loss_value = 0.0
         entropy_loss_value = 0.0
+        old_approx_kl_value = 0.0
         for _ in range(cfg.update_epochs):
             np.random.shuffle(b_inds)
+            epoch_kls: list[float] = []
             for start in range(0, batch_size, minibatch_size):
                 end = start + minibatch_size
                 mb_inds = b_inds[start:end]
@@ -180,10 +196,14 @@ class PPOTrainer:
                 nn.utils.clip_grad_norm_(self.model.parameters(), cfg.max_grad_norm)
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
-                approx_kl_value = approx_kl.item()
+                epoch_kls.append(approx_kl.item())
+                old_approx_kl_value = float(old_approx_kl.item())
                 pg_loss_value = pg_loss.item()
                 v_loss_value = v_loss.item()
                 entropy_loss_value = entropy_loss.item()
+            # Use the epoch-mean KL for the early-stop check rather than the last
+            # minibatch's KL, which is noisy and can trigger spurious early stops.
+            approx_kl_value = float(np.mean(epoch_kls)) if epoch_kls else 0.0
             if cfg.target_kl is not None and approx_kl_value > cfg.target_kl:
                 break
         explained_var = self._explained_variance(batch.values.detach(), batch.returns.detach())
@@ -191,7 +211,7 @@ class PPOTrainer:
             "policy_loss": pg_loss_value,
             "value_loss": v_loss_value,
             "entropy": entropy_loss_value,
-            "old_approx_kl": float(old_approx_kl.item()),
+            "old_approx_kl": old_approx_kl_value,
             "approx_kl": approx_kl_value,
             "clipfrac": float(np.mean(clipfracs)) if clipfracs else 0.0,
             "explained_variance": explained_var,
@@ -277,79 +297,30 @@ class PPOTrainer:
         leave: bool = True,
     ) -> dict[str, Any]:
         episodes = int(episodes or self.cfg.eval_episodes)
-        env = gym.make(self.cfg.env_id)
-        returns: list[float] = []
-        lengths: list[int] = []
-        reward_ctrl_values: list[float] = []
-        reward_forward_values: list[float] = []
-        action_l2_values: list[float] = []
-        action_smoothness_values: list[float] = []
-        episode_iter = range(episodes)
-        if show_progress:
-            episode_iter = tqdm(
-                episode_iter,
-                desc=desc or f"{self.run_name} eval",
-                unit="episode",
-                leave=leave,
-            )
-        for ep_idx in episode_iter:
-            obs, _ = env.reset(seed=self.cfg.seed + 100_000 + ep_idx)
-            done = False
-            ep_return = 0.0
-            ep_len = 0
-            ep_ctrl = 0.0
-            ep_forward = 0.0
-            ep_action_l2: list[float] = []
-            ep_action_smoothness: list[float] = []
-            prev_action: np.ndarray | None = None
-            while not done:
-                obs_batch = np.asarray(obs, dtype=np.float32).reshape(1, self.obs_dim)
-                if self.cfg.obs_norm:
-                    obs_batch = self.obs_rms.normalize(obs_batch)
-                obs_t = torch.as_tensor(obs_batch, dtype=torch.float32, device=self.device)
-                if deterministic:
-                    action_t = self.model.act_deterministic(obs_t)
-                else:
-                    action_t, _, _, _, _ = self.model.get_action_and_value(obs_t)
-                action_np = action_t.cpu().numpy()[0]
-                ep_action_l2.append(float(np.linalg.norm(action_np)))
-                if prev_action is not None:
-                    ep_action_smoothness.append(float(np.mean(np.square(action_np - prev_action))))
-                prev_action = action_np.copy()
-                obs, reward, terminated, truncated, info = env.step(action_np)
-                done = bool(terminated or truncated)
-                ep_return += float(reward)
-                ep_len += 1
-                ctrl = scalar_info(info, "reward_ctrl", "reward_quadctrl", "control_cost", "reward_ctrl_cost") or 0.0
-                forward = scalar_info(info, "reward_forward", "reward_linvel", "x_velocity") or 0.0
-                ep_ctrl += ctrl
-                ep_forward += forward
-            returns.append(ep_return)
-            lengths.append(ep_len)
-            reward_ctrl_values.append(ep_ctrl / max(1, ep_len))
-            reward_forward_values.append(ep_forward / max(1, ep_len))
-            action_l2_values.append(float(np.mean(ep_action_l2)) if ep_action_l2 else 0.0)
-            action_smoothness_values.append(float(np.mean(ep_action_smoothness)) if ep_action_smoothness else 0.0)
-        env.close()
-        returns_np = np.asarray(returns, dtype=np.float64)
-        lengths_np = np.asarray(lengths, dtype=np.float64)
-        return {
-            "returns": returns,
-            "lengths": lengths,
-            "mean_return": float(np.mean(returns_np)),
-            "median_return": float(np.median(returns_np)),
-            "q25_return": float(np.quantile(returns_np, 0.25)),
-            "q75_return": float(np.quantile(returns_np, 0.75)),
-            "std_return": float(np.std(returns_np)),
-            "mean_length": float(np.mean(lengths_np)),
-            "success_alive_duration": float(np.mean(lengths_np)),
-            "fall_rate": float(np.mean(lengths_np < 999.0)),
-            "mean_ctrl_reward": float(np.mean(reward_ctrl_values)),
-            "mean_forward_reward": float(np.mean(reward_forward_values)),
-            "action_l2_norm": float(np.mean(action_l2_values)),
-            "action_smoothness": float(np.mean(action_smoothness_values)),
-            "total_env_steps": self.global_step,
-        }
+
+        def act_fn(obs_batch: np.ndarray, det: bool) -> np.ndarray:
+            obs_in = obs_batch.reshape(obs_batch.shape[0], self.obs_dim).astype(np.float32)
+            if self.cfg.obs_norm:
+                obs_in = self.obs_rms.normalize(obs_in)
+            obs_t = torch.as_tensor(obs_in, dtype=torch.float32, device=self.device)
+            if det:
+                action_t = self.model.act_deterministic(obs_t)
+            else:
+                action_t, _, _, _, _ = self.model.get_action_and_value(obs_t)
+            return action_t.cpu().numpy()[0]
+
+        result = evaluate_policy(
+            env_id=self.cfg.env_id,
+            act_fn=act_fn,
+            episodes=episodes,
+            seed=self.cfg.seed,
+            deterministic=deterministic,
+            show_progress=show_progress,
+            desc=desc or f"{self.run_name} eval",
+            leave=leave,
+        )
+        result["total_env_steps"] = self.global_step
+        return result
 
     def save(self, path: str | Path) -> None:
         path = Path(path)

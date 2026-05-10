@@ -11,7 +11,7 @@ ISAAC_VIDEO_OUT ?= outputs/videos/isaac_policy.mp4
 ISAAC_VIDEO_MAX_STEPS ?= 500
 ISAAC_VIDEO_NUM_ENVS ?= 1
 
-.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v4 isaac-ppo-v9 isaac-ppo-v14 isaac-ppo-v16 isaac-ppo-v17 isaac-ppo-v18 isaac-baseline-spec isaac-v1-spec isaac-v4-spec isaac-v9-spec isaac-v14-spec isaac-v16-spec isaac-v17-spec isaac-v18-spec isaac-v4-install eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v4 isaac-video-v9 isaac-video-v14 isaac-video-v16 isaac-video-v17 isaac-video-v18 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v4 isaac-video-track-v9 isaac-video-track-v14 isaac-video-track-v16 isaac-video-track-v17 isaac-video-track-v18
+.PHONY: install smoke ppo-baseline sac-baseline isaac-ppo-baseline isaac-ppo-v1 isaac-ppo-v4 isaac-ppo-v9 isaac-ppo-v14 isaac-ppo-v16 isaac-ppo-v17 isaac-ppo-v18 isaac-baseline-spec isaac-v1-spec isaac-v4-spec isaac-v9-spec isaac-v14-spec isaac-v16-spec isaac-v17-spec isaac-v18-spec isaac-v4-install eval single-eval curves isaac-curves video isaac-video isaac-video-v0 isaac-video-v1 isaac-video-v4 isaac-video-v9 isaac-video-v14 isaac-video-v16 isaac-video-v17 isaac-video-v18 isaac-video-track isaac-video-track-v0 isaac-video-track-v1 isaac-video-track-v4 isaac-video-track-v9 isaac-video-track-v14 isaac-video-track-v16 isaac-video-track-v17 isaac-video-track-v18 isaac-skrl-install isaac-skrl-ppo isaac-skrl-sac isaac-skrl-td3
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -144,3 +144,20 @@ isaac-video-track-v17: isaac-v4-install
 
 isaac-video-track-v18: isaac-v4-install
 	$(MAKE) isaac-video-track ISAAC_VIDEO_CONFIG=configs/isaac_ppo_v18.yaml ISAAC_VIDEO_OUT=outputs/videos/isaac_v18_policy_tracked.mp4
+
+# --- skrl off-policy comparison on Isaac-Humanoid-Direct-Multi-v0 ---
+ISAAC_SKRL_NUM_ENVS ?= 4096
+ISAAC_SKRL_TIMESTEPS ?= 24000
+ISAAC_SKRL_SEED ?= 42
+
+isaac-skrl-install:
+	$(PYTHON) scripts/install_isaac_skrl_offpolicy.py --config configs/isaac_ppo_baseline.yaml
+
+isaac-skrl-ppo: isaac-skrl-install
+	$(PYTHON) scripts/train_isaac_skrl.py --algorithm ppo --num-envs $(ISAAC_SKRL_NUM_ENVS) --timesteps $(ISAAC_SKRL_TIMESTEPS) --seed $(ISAAC_SKRL_SEED)
+
+isaac-skrl-sac: isaac-skrl-install
+	$(PYTHON) scripts/train_isaac_skrl.py --algorithm sac --num-envs $(ISAAC_SKRL_NUM_ENVS) --timesteps $(ISAAC_SKRL_TIMESTEPS) --seed $(ISAAC_SKRL_SEED)
+
+isaac-skrl-td3: isaac-skrl-install
+	$(PYTHON) scripts/train_isaac_skrl.py --algorithm td3 --num-envs $(ISAAC_SKRL_NUM_ENVS) --timesteps $(ISAAC_SKRL_TIMESTEPS) --seed $(ISAAC_SKRL_SEED)
