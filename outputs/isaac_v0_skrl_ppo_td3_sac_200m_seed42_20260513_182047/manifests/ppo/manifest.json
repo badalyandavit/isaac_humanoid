@@ -1,0 +1,31 @@
+{
+  "algorithm": "skrl_ppo",
+  "task": "Isaac-Humanoid-Direct-Multi-v0",
+  "num_envs": 4096,
+  "timesteps": 1526,
+  "seed": 42,
+  "experiment_name": "isaac_v0_skrl_ppo_td3_sac_200m_seed42_20260513_182047_ppo",
+  "run_name": "ppo",
+  "device": "cuda:0",
+  "command": [
+    "/workspace/IsaacLab/isaaclab.sh",
+    "-p",
+    "scripts/reinforcement_learning/skrl/train.py",
+    "--task",
+    "Isaac-Humanoid-Direct-Multi-v0",
+    "--algorithm",
+    "PPO",
+    "--num_envs",
+    "4096",
+    "--seed",
+    "42",
+    "--max_iterations",
+    "1526",
+    "--device",
+    "cuda:0",
+    "--headless"
+  ],
+  "logs_root_hint": "/workspace/IsaacLab/logs/skrl/isaac_v0_skrl_ppo_td3_sac_200m_seed42_20260513_182047_ppo",
+  "elapsed_seconds": 1900.8576272719947,
+  "return_code": 0
+}

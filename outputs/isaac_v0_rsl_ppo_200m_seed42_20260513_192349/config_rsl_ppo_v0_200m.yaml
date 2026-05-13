@@ -1,0 +1,34 @@
+baseline_name: isaac_v0_rsl_ppo_200m
+simulator_backend: Isaac Lab
+reward_version: isaac_v0_official
+loss_version: isaac_rsl_rl_ppo_default
+reward_design_goal: Official Isaac Lab direct humanoid reward.
+isaaclab_dir: /workspace/IsaacLab
+task: Isaac-Humanoid-Direct-v0
+seed: 42
+num_envs: 4096
+total_timesteps: 200000000
+num_steps_per_env: 32
+max_iterations: null
+save_interval: 10
+experiment_name: isaac_v0_rsl_ppo_200m_seed42_20260513_192349
+run_name: rsl_ppo
+output_dir: /workspace/humanoid_population_ppo/outputs/isaac_v0_rsl_ppo_200m_seed42_20260513_192349
+device: cuda:0
+headless: true
+video: false
+video_length: 200
+video_interval: 2000
+heading_weight: 0.5
+up_weight: 0.1
+energy_cost_scale: 0.05
+actions_cost_scale: 0.01
+alive_reward_scale: 2.0
+dof_vel_scale: 0.1
+death_cost: -1.0
+termination_height: 0.8
+angular_velocity_scale: 0.25
+contact_force_scale: 0.01
+reward_notes:
+- V0 keeps the official Isaac Lab reward coefficients unchanged.
+hydra_overrides: []
