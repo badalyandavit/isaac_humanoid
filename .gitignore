@@ -65,3 +65,11 @@ outputs/*
 
 # internal docs
 todo.md
+
+# Keep final Isaac V0 run artifacts in git.
+!outputs/isaac_v0_rsl_ppo_200m_seed42_20260513_192349/
+!outputs/isaac_v0_rsl_ppo_200m_seed42_20260513_192349/**
+!outputs/isaac_v0_skrl_ppo_td3_sac_200m_seed42_20260513_182047/
+!outputs/isaac_v0_skrl_ppo_td3_sac_200m_seed42_20260513_182047/**
+!outputs/isaac_v0_rsl_ppo_200m_seed42_20260513_192349/**/*.mp4
+!outputs/isaac_v0_skrl_ppo_td3_sac_200m_seed42_20260513_182047/**/*.mp4
