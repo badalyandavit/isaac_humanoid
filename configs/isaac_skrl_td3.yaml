@@ -1,77 +1,89 @@
 seed: 42
-
-# Skrl TD3 config for Isaac-Humanoid-Direct-Multi-v0.
-# TD3 = twin critics + policy delay + target policy smoothing + Gaussian exploration.
-
 models:
-  separate: True
+  separate: true
   policy:
     class: DeterministicMixin
-    clip_actions: True
+    clip_actions: true
     network:
-      - name: net
-        input: STATES
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: OBSERVATIONS
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ACTIONS
   target_policy:
     class: DeterministicMixin
-    clip_actions: True
+    clip_actions: true
     network:
-      - name: net
-        input: STATES
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: OBSERVATIONS
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ACTIONS
   critic_1:
     class: DeterministicMixin
-    clip_actions: False
+    clip_actions: false
     network:
-      - name: net
-        input: concatenate([STATES, ACTIONS])
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: concatenate([OBSERVATIONS, ACTIONS])
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ONE
   critic_2:
     class: DeterministicMixin
-    clip_actions: False
+    clip_actions: false
     network:
-      - name: net
-        input: concatenate([STATES, ACTIONS])
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: concatenate([OBSERVATIONS, ACTIONS])
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ONE
   target_critic_1:
     class: DeterministicMixin
-    clip_actions: False
+    clip_actions: false
     network:
-      - name: net
-        input: concatenate([STATES, ACTIONS])
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: concatenate([OBSERVATIONS, ACTIONS])
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ONE
   target_critic_2:
     class: DeterministicMixin
-    clip_actions: False
+    clip_actions: false
     network:
-      - name: net
-        input: concatenate([STATES, ACTIONS])
-        layers: [512, 256, 128]
-        activations: elu
+    - name: net
+      input: concatenate([OBSERVATIONS, ACTIONS])
+      layers:
+      - 512
+      - 256
+      - 128
+      activations: elu
     output: ONE
-
 memory:
   class: RandomMemory
   memory_size: 1000000
-
 agent:
   class: TD3
   gradient_steps: 1
   batch_size: 4096
   discount_factor: 0.99
   polyak: 0.005
-  actor_learning_rate: 5.0e-04
-  critic_learning_rate: 5.0e-04
+  actor_learning_rate: 0.0005
+  critic_learning_rate: 0.0005
   random_timesteps: 80
   learning_starts: 80
   grad_norm_clip: 0
@@ -90,13 +102,12 @@ agent:
     std: 0.2
   smooth_regularization_clip: 0.5
   rewards_shaper_scale: 0.01
-
   experiment:
-    directory: "humanoid_direct_skrl_td3"
-    experiment_name: ""
+    directory: humanoid_direct_skrl_td3
+    experiment_name: ''
     write_interval: 240
     checkpoint_interval: 4800
-
+  rollouts: 1
 trainer:
   class: SequentialTrainer
   timesteps: 24000
